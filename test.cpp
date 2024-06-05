@@ -28,17 +28,28 @@ public:
         this->dealPrice = dp;
     }
     bool operator<(const DataSet& other) const {
-        if(this->productCode != other.productCode) {return this->productCode < other.productCode;}
-        if(this->strikePrice != other.strikePrice) {return this->strikePrice < other.strikePrice;}
-        if(this->expirationDate != other.expirationDate) {return this->expirationDate < other.expirationDate;}
-        if(this->optionType != other.optionType) {return this->optionType < other.optionType;}
+        if (this->expirationDate < other.expirationDate) {
+            return true;
+        } else if (this->expirationDate == other.expirationDate) {
+            if (this->strikePrice < other.strikePrice) {
+                return true;
+            } else if (this->strikePrice == other.strikePrice) {
+                return this->optionType < other.optionType;
+            }
+        }
         return false;
     }
+
     bool operator>(const DataSet& other) const {
-        if(this->productCode != other.productCode) {return this->productCode > other.productCode;}
-        if(this->strikePrice != other.strikePrice) {return this->strikePrice > other.strikePrice;}
-        if(this->expirationDate != other.expirationDate) {return this->expirationDate > other.expirationDate;}
-        if(this->optionType != other.optionType) {return this->optionType > other.optionType;}
+        if (this->expirationDate > other.expirationDate) {
+            return true;
+        } else if (this->expirationDate == other.expirationDate) {
+            if (this->strikePrice > other.strikePrice) {
+                return true;
+            } else if (this->strikePrice == other.strikePrice) {
+                return this->optionType > other.optionType;
+            }
+        }
         return false;
     }
     void print() {
@@ -62,168 +73,106 @@ public:
 
 class MinHeap {
 public:
-    TreeNode* root;
-    MinHeap() {
-        this->root = NULL;
-    }
-    bool isEmpty() {
-        return this->root == NULL;
-    }
+    TreeNode** arr;
+    int capacity;
+    int size;
+    MinHeap() {this->arr = NULL;}
 };
-/*-------------------------------------------------------*/
-void heapify(MinHeap* heap, TreeNode* node);
-TreeNode* removeMin(MinHeap& heap, TreeNode* node);
 
-void insert(MinHeap* heap, DataSet* data) {
-    TreeNode* newNode = new TreeNode(data);
-    if (heap->root == NULL) {
-        heap->root = newNode;
-        return;
+void insert(MinHeap* heap, TreeNode* node) {
+    ++heap->size;
+    int i = heap->size - 1;  // 最後一個節點
+    while (i && node->data < heap->arr[(i - 1) / 2]->data) {  // 如果新節點比父節點小
+        heap->arr[i] = heap->arr[(i - 1) / 2];
+        i = (i - 1) / 2;
     }
-
-    TreeNode* current = heap->root;
-    TreeNode* parent = NULL;
-
-    while (current != NULL) {
-        parent = current;
-        if (*newNode->data < *current->data) {
-            current = current->left;
-        } else {
-            current = current->right;
-        }
-    }
-
-    if (*newNode->data < *parent->data) {
-        parent->left = newNode;
-    } else {
-        parent->right = newNode;
-    }
-    newNode->parent = parent;
-    heapify(heap, newNode);
+    heap->arr[i] = node;
 }
 
-DataSet* extractMin(MinHeap& heap) {
-    if (heap.root == NULL) {
-        return NULL;
-    }
-
-    DataSet* minData = heap.root->data;
-    TreeNode* minNode = heap.root;
-
-    if (heap.root->left == NULL && heap.root->right == NULL) {
-        heap.root = NULL;
-        delete minNode;
-        return minData;
-    }
-
-    heap.root = removeMin(heap, heap.root);
-    return minData;
+MinHeap* newMinHeap(int capacity) {
+    MinHeap* tmp = new MinHeap;
+    tmp->capacity = capacity;
+    tmp->size = 0;
+    tmp->arr = new TreeNode * [capacity];
+    return tmp;
 }
 
-TreeNode* removeMin(MinHeap& heap, TreeNode* node) {
-    if (node->left == NULL) {
-        TreeNode* temp = node->right;
-        delete node;
-        return temp;
-    }
-
-    if (node->left->left == NULL && node->left->right == NULL) {
-        TreeNode* temp = node->left;
-        delete node->left;
-        node->left = NULL;
-        heapify(&heap, node);
-        return node;
-    }
-
-    node->left = removeMin(heap, node->left);
-    heapify(&heap, node);
-    return node;
+void Swap(struct TreeNode** a, struct TreeNode** b) {
+    struct TreeNode* tmp = *a;
+    *a = *b;
+    *b = tmp;
 }
-
-void heapify(MinHeap* heap, TreeNode* node) {
-    if (node == NULL || (node->left == NULL && node->right == NULL)) {
-        return;
-    }
-
-    TreeNode* smallest = node;
-    if (node->left != NULL && *node->left->data < *smallest->data) {
-        smallest = node->left;
-    }
-    if (node->right != NULL && *node->right->data < *smallest->data) {
-        smallest = node->right;
-    }
-
-    if (smallest != node) {
-        swap(node, smallest);
-        heapify(heap, smallest);
+// 維護最小堆
+void heapify(MinHeap* heap, int idx) {
+    int minn = idx;
+    int left = 2 * idx + 1;  // 因為是 0-index 左子節點是 2*idx+1 
+    int right = 2 * idx + 2;  // 右子節點是 2*idx+2
+    // 如果左子節點比父節點小，就把左子節點設為最小
+    if (left < heap->size && heap->arr[left]->data < heap->arr[minn]->data) minn = left;
+    // 如果右子節點比父節點小，就把右子節點設為最小
+    if (right < heap->size && heap->arr[right]->data < heap->arr[minn]->data) minn = right;
+    // 如果最小的不是父節點，就交換
+    if (minn != idx) {
+        Swap(&heap->arr[minn], &heap->arr[idx]);
+        heapify(heap, minn);
     }
 }
 
-void readCSV(const string& filename, MinHeap& heap) {
+// 取得最小的節點
+TreeNode* getMin(MinHeap* heap) {
+    TreeNode* minn = heap->arr[0];
+    heap->arr[0] = heap->arr[heap->size - 1];
+    heap->size--;
+    heapify(heap, 0);
+    return minn;
+}
+
+Vector<string> row;
+long long dataSize = 0;
+void readCSV(const string& filename) {
     ifstream file(filename);
     string line;
-    getline(file, line); // Skip the header row
+
     while (getline(file, line)) {
-        istringstream iss(line);
+        stringstream ss(line);
         string field;
-        Vector<string> fields;
-        while (getline(iss, field, ',')) {
-            fields.push_back(field);
+
+        while (getline(ss, field, ',')) {
+            row.push_back(field);
+            dataSize++;
         }
-        DataSet* data = new DataSet(fields.get(0), fields.get(1), stod(fields.get(2)), fields.get(3), fields.get(4), fields.get(5), stod(fields.get(6)), stoi(fields.get(7)));
-        insert(&heap, data);
     }
     file.close();
 }
-// void readCSV(const string& filename, MinHeap& heap) {
-//     ifstream file(filename);
-//     if (!file.is_open()) {
-//         cerr << "Error opening file: " << filename << endl;
-//         return;
-//     }
-
-//     string line;
-//     while (getline(file, line)) {
-//         stringstream ss(line);
-//         string dealDate;
-//         string productCode;
-//         double strikePrice;
-//         string expirationDate;
-//         string optionType;
-//         string dealTime;
-//         double dealPrice;
-//         int dealVolume;
-
-//         //cout << "Line: " << line << endl; // 輸出木前讀取的整行
-
-//         getline(ss, dealDate, ',');
-//         getline(ss, productCode, ',');
-//         ss >> strikePrice;
-//         ss.ignore();
-//         getline(ss, expirationDate, ',');
-//         getline(ss, optionType, ',');
-//         getline(ss, dealTime, ',');
-//         ss >> dealPrice;
-//         ss.ignore();
-//         ss >> dealVolume;
-//         ss.ignore();
-//         DataSet* data = new DataSet(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
-//         insert(&heap, data);
-//     }
-//     cout << "Read done\n";
-//     file.close();
-// }
 
 int main() {
-    MinHeap heap;
     const string filename = "DStest.txt";
-    // const string filename = "OptionsDaily_2017_05_15.csv";
-    readCSV(filename, heap);
-    cout << "Sorted records are: \n";
-    int cnt = 10;
-    while (cnt--) {
-        DataSet* data = extractMin(heap);
-        data->print();
+    readCSV(filename);
+    // for(int i = 0; i < dataSize; i++) {
+    //     cout << row.get(i);
+    //     if((i+1) % 8 == 0) {cout << endl;}
+    // }
+    MinHeap* heap = newMinHeap(dataSize / 8);
+    //創建 DataSet 和 TreeNode, 並插入到 MinHeap
+    for (int i = 0; i < dataSize; i += 8) {
+        string dDate = row.get(i);
+        string pCode = row.get(i + 1);
+        double sPrice = stod(row.get(i + 2));
+        string eDate = row.get(i + 3);
+        string oType = row.get(i + 4);
+        string dTime = row.get(i + 5);
+        double dPrice = stod(row.get(i + 6));
+        int dVolume = stoi(row.get(i + 7));
+
+        DataSet* dataSet = new DataSet(dDate, pCode, sPrice, eDate, oType, dTime, dPrice, dVolume);
+        TreeNode* node = new TreeNode(dataSet);
+        insert(heap, node);
     }
+
+    while (heap->size > 0) {
+        TreeNode* minNode = getMin(heap);
+        minNode->data->print();
+    }
+
     return 0;
 }

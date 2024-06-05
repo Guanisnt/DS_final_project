@@ -1,6 +1,7 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
-template <typename T>
+using namespace std;
+template <class T>
 class Vector {
 private:
     T* arr;
@@ -12,6 +13,23 @@ public:
         arr = new T[1];
         capacity = 1;
         current = 0;
+    }
+
+    Vector(int size, T data) {
+        arr = new T[size];
+        capacity = size;
+        current = size;
+
+        for (int i = 0; i < size; i++) {
+            arr[i] = data;
+        }
+    }
+
+    T& at(int index) {
+        if (index < current) {
+            return arr[index];
+        }
+        throw out_of_range("Vector index out of range");
     }
 
     void push_back(T data) {
@@ -36,6 +54,10 @@ public:
             return arr[index];
         }
         return T();
+    }
+
+    int size() const {
+        return current;
     }
 
     ~Vector() {
