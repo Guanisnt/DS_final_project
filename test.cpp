@@ -28,30 +28,20 @@ public:
         this->dealPrice = dp;
     }
     bool operator<(const DataSet& other) const {
-        if (this->expirationDate < other.expirationDate) {
-            return true;
-        } else if (this->expirationDate == other.expirationDate) {
-            if (this->strikePrice < other.strikePrice) {
-                return true;
-            } else if (this->strikePrice == other.strikePrice) {
-                return this->optionType < other.optionType;
-            }
-        }
-        return false;
+        return productCode < other.productCode;
+        if(this->productCode == other.productCode) {return this->strikePrice < other.strikePrice;}
+        if(this->strikePrice == other.strikePrice) {return this->expirationDate < other.expirationDate;}
+        if(this->expirationDate == other.expirationDate) {return this->optionType < other.optionType;}
+        return true;
+    }
+    bool operator>(const DataSet& other) const {
+        return productCode > other.productCode;
+        if(this->productCode == other.productCode) {return this->strikePrice > other.strikePrice;}
+        if(this->strikePrice == other.strikePrice) {return this->expirationDate > other.expirationDate;}
+        if(this->expirationDate == other.expirationDate) {return this->optionType > other.optionType;}
+        return true;
     }
 
-    bool operator>(const DataSet& other) const {
-        if (this->expirationDate > other.expirationDate) {
-            return true;
-        } else if (this->expirationDate == other.expirationDate) {
-            if (this->strikePrice > other.strikePrice) {
-                return true;
-            } else if (this->strikePrice == other.strikePrice) {
-                return this->optionType > other.optionType;
-            }
-        }
-        return false;
-    }
     void print() {
         cout << dealDate << ", " << productCode << ", " << strikePrice << ", " << expirationDate << ", " << optionType << ", " << dealTime << ", " << dealPrice << ", " << dealVolume << endl;
     }
@@ -148,6 +138,7 @@ void readCSV(const string& filename) {
 int main() {
     const string filename = "DStest.txt";
     readCSV(filename);
+
     // for(int i = 0; i < dataSize; i++) {
     //     cout << row.get(i);
     //     if((i+1) % 8 == 0) {cout << endl;}
