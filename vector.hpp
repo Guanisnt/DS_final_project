@@ -49,6 +49,12 @@ public:
         current++;
     }
 
+    void pop_back() {
+        if (current > 0) {
+            current--;
+        }
+    }
+
     T get(int index) const {
         if (index < current) {
             return arr[index];
@@ -58,6 +64,24 @@ public:
 
     int size() const {
         return current;
+    }
+
+    bool empty() const {
+        return current == 0;
+    }
+
+    T front() const {
+        if (current > 0) {
+            return arr[0];
+        }
+        return T();
+    }
+
+    T back() const {
+        if (current > 0) {
+            return arr[current - 1];
+        }
+        return T();
     }
 
     ~Vector() {
