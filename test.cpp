@@ -189,9 +189,16 @@ void readCSV(const string& filename) {
 }
 
 int main() {
-    //const string filename = "DStest.txt";
-    const string filename = "OptionsDaily_2017_05_15.csv";
-    readCSV(filename);
+    // const string filename = "DStest.txt";
+    // const string file1 = "OptionsDaily_2017_05_15.csv";
+    // const string file2 = "OptionsDaily_2017_05_16.csv";
+    // const string file3 = "OptionsDaily_2017_05_17.csv";
+    // const string file4 = "OptionsDaily_2017_05_18.csv";
+    // const string file5 = "OptionsDaily_2017_05_19.csv";
+    for(int i=1; i<=5; i++){
+        string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
+        readCSV(file);
+    }
 
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
