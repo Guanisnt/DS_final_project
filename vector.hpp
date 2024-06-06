@@ -1,5 +1,6 @@
 #ifndef VECTOR_HPP
 #define VECTOR_HPP
+#include <iostream>
 using namespace std;
 template <class T>
 class Vector {
@@ -26,11 +27,12 @@ public:
     }
 
     T& at(int index) {
-        if (index < current) {
-            return arr[index];
+        if (index < 0 || index >= current) {
+            throw out_of_range("Vector index out of range");
         }
-        throw out_of_range("Vector index out of range");
+        return arr[index];
     }
+
 
     void push_back(T data) {
         if (current == capacity) {
@@ -56,10 +58,10 @@ public:
     }
 
     T get(int index) const {
-        if (index < current) {
-            return arr[index];
+        if (index < 0 || index >= current) {
+            return T();
         }
-        return T();
+        return arr[index];
     }
 
     int size() const {

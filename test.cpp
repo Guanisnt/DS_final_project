@@ -3,11 +3,11 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
-#include <vector>
+#include "Vector.hpp"
 
 using namespace std;
-vector<string> split(const string& str, char delimiter) {
-    vector<string> parts;
+Vector<string> split(const string& str, char delimiter) {
+    Vector<string> parts;
     stringstream ss(str);
     string part;
     while (getline(ss, part, delimiter)) {
@@ -20,10 +20,10 @@ bool compareDecimals(const string& a, const string& b) {
     auto aParts = split(a, '.');
     auto bParts = split(b, '.');
 
-    string aIntPart = aParts[0];
-    string aFracPart = (aParts.size() > 1) ? aParts[1] : "0";
-    string bIntPart = bParts[0];
-    string bFracPart = (bParts.size() > 1) ? bParts[1] : "0";
+    string aIntPart = aParts.at(0);
+    string aFracPart = (aParts.size() > 1) ? aParts.at(1) : "0";
+    string bIntPart = bParts.at(0);
+    string bFracPart = (bParts.size() > 1) ? bParts.at(1) : "0";
 
     if (aIntPart.length() != bIntPart.length()) {
         return aIntPart.length() < bIntPart.length();
@@ -48,6 +48,8 @@ public:
     DataSet(string ddate, string pc, string sp, string ed, string ot, string dt, string dp, string dv)
         : dealDate(ddate), productCode(pc), strikePrice(sp), expirationDate(ed),
         optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
+    
+    DataSet() : dealDate(""), productCode(""), strikePrice(""), expirationDate(""), optionType(""), dealTime(""), dealPrice(""), dealVolume("") {}
 
     /*bool operator<(const DataSet& other) const {
         return productCode < other.productCode;
@@ -92,11 +94,11 @@ public:
 
 class MinHeap {
 private:
-    vector<DataSet> heap;
+    Vector<DataSet> heap;
 
     void heapifyUp(int index) {
-        while (index > 0 && heap[(index - 1) / 2] > heap[index]) {
-            swap(heap[index], heap[(index - 1) / 2]);
+        while (index > 0 && heap.at((index - 1) / 2) > heap.at(index)) {
+            swap(heap.at(index), heap.at((index - 1) / 2));
             index = (index - 1) / 2;
         }
     }
@@ -108,16 +110,16 @@ private:
             int right = 2 * index + 2;
             int smallest = index;
 
-            if (left < size && heap[left] < heap[smallest]) {
+            if (left < size && heap.at(left) < heap.at(smallest)) {
                 smallest = left;
             }
 
-            if (right < size && heap[right] < heap[smallest]) {
+            if (right < size && heap.at(right) < heap.at(smallest)) {
                 smallest = right;
             }
 
             if (smallest != index) {
-                swap(heap[index], heap[smallest]);
+                swap(heap.at(index), heap.at(smallest));
                 index = smallest;
             }
             else {
@@ -138,7 +140,7 @@ public:
         }
 
         DataSet minData = heap.front();
-        heap[0] = heap.back();
+        heap.at(0) = heap.back();
         heap.pop_back();
         heapifyDown(0);
 
@@ -150,25 +152,25 @@ public:
     }
 };
 
-void buildMinHeapFromVector(const vector<string>& row, MinHeap& minHeap) {
+void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
             DataSet data(
-                row[i],
-                row[i + 1],
-                row[i + 2],
-                row[i + 3],
-                row[i + 4],
-                row[i + 5],
-                row[i + 6],
-                row[i + 7]
+                row.get(i),
+                row.get(i + 1),
+                row.get(i + 2),
+                row.get(i + 3),
+                row.get(i + 4),
+                row.get(i + 5),
+                row.get(i + 6),
+                row.get(i + 7)
             );
             minHeap.insert(data);
         }
     }
 }
 
-vector<string> row;
+Vector<string> row;
 long long dataSize = 0;
 void readCSV(const string& filename) {
     ifstream file(filename);
