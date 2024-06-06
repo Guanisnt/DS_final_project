@@ -3,6 +3,10 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
+#include <set>
+#include <tuple>
+#include "Tuple.hpp"
+#include "Set.hpp"
 #include "Vector.hpp"
 using namespace std;
 
@@ -155,6 +159,7 @@ public:
 
 // 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 minHeap
 void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
+    Set<Tuple<string>> uniqueData;
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
             DataSet data(
@@ -168,8 +173,10 @@ void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
                 row.get(i + 7)
             );
             minHeap.insert(data);
+            uniqueData.insert(Tuple<string>(row.get(i + 1), row.get(i + 2), row.get(i + 3), row.get(i + 4)));
         }
     }
+    cout << "Unique data count: " << uniqueData.size() << endl;
 }
 
 // row 存放所有資料，每個 col 分開存
