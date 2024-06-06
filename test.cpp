@@ -4,8 +4,9 @@
 #include <string>
 #include <algorithm>
 #include "Vector.hpp"
-
 using namespace std;
+
+/*split 和 compareDecimals 是處理字串數字比大小的*/
 Vector<string> split(const string& str, char delimiter) {
     Vector<string> parts;
     stringstream ss(str);
@@ -94,12 +95,12 @@ public:
 
 class MinHeap {
 private:
-    Vector<DataSet> heap;
+    Vector<DataSet> heap;  // 用 vector 作 heap
 
     void heapifyUp(int index) {
-        while (index > 0 && heap.at((index - 1) / 2) > heap.at(index)) {
-            swap(heap.at(index), heap.at((index - 1) / 2));
-            index = (index - 1) / 2;
+        while (index > 0 && heap.at((index - 1) / 2) > heap.at(index)) {  // 父節點比子節點大
+            swap(heap.at(index), heap.at((index - 1) / 2));  // 交換
+            index = (index - 1) / 2;  // 更新富節點
         }
     }
 
@@ -110,11 +111,11 @@ private:
             int right = 2 * index + 2;
             int smallest = index;
 
-            if (left < size && heap.at(left) < heap.at(smallest)) {
+            if (left < size && heap.at(left) < heap.at(smallest)) {  // 左子節點比較小
                 smallest = left;
             }
 
-            if (right < size && heap.at(right) < heap.at(smallest)) {
+            if (right < size && heap.at(right) < heap.at(smallest)) {  // 右子節點比較小
                 smallest = right;
             }
 
@@ -130,8 +131,8 @@ private:
 
 public:
     void insert(const DataSet& data) {
-        heap.push_back(data);
-        heapifyUp(heap.size() - 1);
+        heap.push_back(data);  // 每次都插入到最後一個
+        heapifyUp(heap.size() - 1); // 所以從最後一個開始 heapifyUp
     }
 
     DataSet extractMin() {
@@ -139,10 +140,10 @@ public:
             throw runtime_error("Heap is empty");
         }
 
-        DataSet minData = heap.front();
-        heap.at(0) = heap.back();
-        heap.pop_back();
-        heapifyDown(0);
+        DataSet minData = heap.front();  // 把頭拿出來
+        heap.at(0) = heap.back();  // 把最後一個放到頭
+        heap.pop_back();  // 把最後一個刪掉
+        heapifyDown(0);  // 從頭開始 heapifyDown
 
         return minData;
     }
@@ -152,6 +153,7 @@ public:
     }
 };
 
+// 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 minHeap
 void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
@@ -170,8 +172,8 @@ void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
     }
 }
 
-Vector<string> row;
-long long dataSize = 0;
+// row 存放所有資料，每個 col 分開存
+Vector<string> row;  // 存 data 的 vector
 void readCSV(const string& filename) {
     ifstream file(filename);
     string line;
@@ -180,25 +182,26 @@ void readCSV(const string& filename) {
         stringstream ss(line);
         string field;
 
-        while (getline(ss, field, ',')) {
+        while (getline(ss, field, ',')) {  // 逗號分隔
+            cout<<field<<endl;
             row.push_back(field);
-            dataSize++;
         }
     }
     file.close();
 }
 
 int main() {
-    // const string filename = "DStest.txt";
+    const string filename = "DStest.txt";
     // const string file1 = "OptionsDaily_2017_05_15.csv";
     // const string file2 = "OptionsDaily_2017_05_16.csv";
     // const string file3 = "OptionsDaily_2017_05_17.csv";
     // const string file4 = "OptionsDaily_2017_05_18.csv";
     // const string file5 = "OptionsDaily_2017_05_19.csv";
-    for(int i=1; i<=5; i++){
-        string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
-        readCSV(file);
-    }
+    // for(int i=1; i<=5; i++){
+    //     string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
+    //     readCSV(file);
+    // }
+    readCSV(filename);
 
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
