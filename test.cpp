@@ -3,72 +3,100 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
-#include "queue.hpp"
-#include "vector.hpp"
-using namespace std;
+#include <vector>
 
+using namespace std;
+vector<string> split(const string& str, char delimiter) {
+    vector<string> parts;
+    stringstream ss(str);
+    string part;
+    while (getline(ss, part, delimiter)) {
+        parts.push_back(part);
+    }
+    return parts;
+}
+
+bool compareDecimals(const string& a, const string& b) {
+    auto aParts = split(a, '.');
+    auto bParts = split(b, '.');
+
+    string aIntPart = aParts[0];
+    string aFracPart = (aParts.size() > 1) ? aParts[1] : "0";
+    string bIntPart = bParts[0];
+    string bFracPart = (bParts.size() > 1) ? bParts[1] : "0";
+
+    if (aIntPart.length() != bIntPart.length()) {
+        return aIntPart.length() < bIntPart.length();
+    }
+    if (aIntPart != bIntPart) {
+        return aIntPart < bIntPart;
+    }
+
+    return aFracPart < bFracPart;
+}
 class DataSet {
 private:
     string dealDate;
     string productCode;
-    double strikePrice;
+    string strikePrice;
     string expirationDate;
     string optionType;
     string dealTime;
-    double dealPrice;
-    int dealVolume;
+    string dealPrice;
+    string dealVolume;
 public:
-    DataSet(string ddate, string pc, double sp, string ed, string ot, string dt, double dp, int dv) {
-        this->dealDate = ddate;
-        this->productCode = pc;
-        this->strikePrice = sp;
-        this->expirationDate = ed;
-        this->optionType = ot;
-        this->dealTime = dt;
-        this->dealVolume = dv;
-        this->dealPrice = dp;
-    }
-    bool operator<(const DataSet& other) const {
+    DataSet(string ddate, string pc, string sp, string ed, string ot, string dt, string dp, string dv)
+        : dealDate(ddate), productCode(pc), strikePrice(sp), expirationDate(ed),
+        optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
+
+    /*bool operator<(const DataSet& other) const {
         return productCode < other.productCode;
-        if(this->productCode == other.productCode) {return this->strikePrice < other.strikePrice;}
-        if(this->strikePrice == other.strikePrice) {return this->expirationDate < other.expirationDate;}
-        if(this->expirationDate == other.expirationDate) {return this->optionType < other.optionType;}
+        if (this->productCode == other.productCode) { return this->strikePrice < other.strikePrice; }
+        else if (this->strikePrice == other.strikePrice) { return this->expirationDate < other.expirationDate; }
+        else if (this->expirationDate == other.expirationDate) { return this->optionType < other.optionType; }
         return true;
     }
     bool operator>(const DataSet& other) const {
         return productCode > other.productCode;
-        if(this->productCode == other.productCode) {return this->strikePrice > other.strikePrice;}
-        if(this->strikePrice == other.strikePrice) {return this->expirationDate > other.expirationDate;}
-        if(this->expirationDate == other.expirationDate) {return this->optionType > other.optionType;}
+        if (this->productCode == other.productCode) { return this->strikePrice > other.strikePrice; }
+        else if (this->strikePrice == other.strikePrice) { return this->expirationDate > other.expirationDate; }
+        else if (this->expirationDate == other.expirationDate) { return this->optionType > other.optionType; }
         return true;
+    }*/
+    /*bool operator<(const DataSet& other) const {
+        if (this->strikePrice.length() == other.strikePrice.length()) {
+            return this->strikePrice <= other.strikePrice;
+        }
+        return this->strikePrice.length() <= other.strikePrice.length();
+    }
+    bool operator>(const DataSet& other) const {
+        if (this->strikePrice.length() == other.strikePrice.length()) {
+            return this->strikePrice > other.strikePrice;
+        }
+        return this->strikePrice.length() > other.strikePrice.length();
+    }*/
+    bool operator<(const DataSet& other) const {
+        return compareDecimals(this->strikePrice, other.strikePrice);
+    }
+
+    bool operator>(const DataSet& other) const {
+        return compareDecimals(other.strikePrice, this->strikePrice);
     }
 
     void print() {
-        cout << dealDate << ", " << productCode << ", " << strikePrice << ", " << expirationDate << ", " << optionType << ", " << dealTime << ", " << dealPrice << ", " << dealVolume << endl;
-    }
-};
-
-class TreeNode {
-public:
-    DataSet* data;
-    TreeNode* left;
-    TreeNode* right;
-    TreeNode* parent;
-    TreeNode(DataSet* data) {
-        this->parent = NULL;
-        this->data = data;
-        this->left = NULL;
-        this->right = NULL;
+        cout << dealDate << ", " << productCode << ", " << strikePrice << ", "
+            << expirationDate << ", " << optionType << ", " << dealTime << ", "
+            << dealPrice << ", " << dealVolume << endl;
     }
 };
 
 class MinHeap {
 private:
-    Vector<DataSet> heap;
+    vector<DataSet> heap;
 
     void heapifyUp(int index) {
-        while (index > 0 && heap.get((index - 1) / 2) > heap.get(index)) {
-            swap(heap.at(index), heap.at((index - 1) / 2));
+        while (index > 0 && heap[(index - 1) / 2] > heap[index]) {
+            swap(heap[index], heap[(index - 1) / 2]);
             index = (index - 1) / 2;
         }
     }
@@ -80,25 +108,26 @@ private:
             int right = 2 * index + 2;
             int smallest = index;
 
-            if (left < size && heap.get(left) < heap.get(smallest)) {
+            if (left < size && heap[left] < heap[smallest]) {
                 smallest = left;
             }
 
-            if (right < size && heap.get(right) < heap.get(smallest)) {
+            if (right < size && heap[right] < heap[smallest]) {
                 smallest = right;
             }
 
             if (smallest != index) {
-                swap(heap.at(index), heap.at(smallest));
+                swap(heap[index], heap[smallest]);
                 index = smallest;
-            } else {
+            }
+            else {
                 break;
             }
         }
     }
 
 public:
-    void insert(DataSet data) {
+    void insert(const DataSet& data) {
         heap.push_back(data);
         heapifyUp(heap.size() - 1);
     }
@@ -109,7 +138,7 @@ public:
         }
 
         DataSet minData = heap.front();
-        heap.get(0) = heap.back();
+        heap[0] = heap.back();
         heap.pop_back();
         heapifyDown(0);
 
@@ -121,85 +150,25 @@ public:
     }
 };
 
-void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
+void buildMinHeapFromVector(const vector<string>& row, MinHeap& minHeap) {
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
             DataSet data(
-                row.get(i),
-                row.get(i + 1),
-                stod(row.get(i + 2)),
-                row.get(i + 3),
-                row.get(i + 4),
-                row.get(i + 5),
-                stod(row.get(i + 6)),
-                stoi(row.get(i + 7))
+                row[i],
+                row[i + 1],
+                row[i + 2],
+                row[i + 3],
+                row[i + 4],
+                row[i + 5],
+                row[i + 6],
+                row[i + 7]
             );
             minHeap.insert(data);
         }
     }
 }
 
-void insert(Vector<string>& heap, string value)
-{
-    // Add the new element to the end of the heap
-    heap.push_back(value);
-    // Get the index of the last element
-    int index = heap.size() - 1;
-    // Compare the new element with its parent and swap if
-    // necessary
-    while (index > 0 && heap.get((index - 1) / 2) > heap.get(index)) {
-        swap(heap.at(index), heap.at((index - 1) / 2));
-        // Move up the tree to the parent of the current
-        // element
-        index = (index - 1) / 2;
-    }
-}
-
-// Function to delete a node from the min-heap
-void Delete(Vector<string>& heap, string value)
-{
-    // Find the index of the element to be deleted
-    int index = -1;
-    for (int i = 0; i < heap.size(); i++) {
-        if (heap.get(i) == value) {
-            index = i;
-            break;
-        }
-    }
-    // If the element is not found, return
-    if (index == -1) {
-        return;
-    }
-    // Replace the element to be deleted with the last
-    // element
-    heap.get(index) = heap.get(heap.size() - 1);
-    // Remove the last element
-    heap.pop_back();
-    // Heapify the tree starting from the element at the
-    // deleted index
-    while (true) {
-        int left_child = 2 * index + 1;
-        int right_child = 2 * index + 2;
-        int smallest = index;
-        if (left_child < heap.size()
-            && heap.get(left_child) < heap.get(smallest)) {
-            smallest = left_child;
-        }
-        if (right_child < heap.size()
-            && heap.get(right_child) < heap.get(smallest)) {
-            smallest = right_child;
-        }
-        if (smallest != index) {
-            swap(heap.at(index), heap.at(smallest)); 
-            index = smallest;
-        }
-        else {
-            break;
-        }
-    }
-}
-
-Vector<string> row;
+vector<string> row;
 long long dataSize = 0;
 void readCSV(const string& filename) {
     ifstream file(filename);
@@ -218,13 +187,14 @@ void readCSV(const string& filename) {
 }
 
 int main() {
-    const string filename = "DStest.txt";
+    //const string filename = "DStest.txt";
+    const string filename = "OptionsDaily_2017_05_15.csv";
     readCSV(filename);
 
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
-
-    while (!minHeap.isEmpty()) {
+    int n = 10;
+    while (n--) {
         DataSet minData = minHeap.extractMin();
         minData.print();
     }
