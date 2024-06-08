@@ -19,5 +19,13 @@ public:
     int size() const {
         return data.size();
     }
+
+    typename Vector<T>::Iterator find(const T& value) {
+        return data.find(value);
+    }
+    
+    typename Vector<T>::Iterator end() {
+        return data.end();
+    }
 };
 #endif

@@ -3,10 +3,11 @@
 #include <sstream>
 #include <string>
 #include <algorithm>
-#include <set>
+#include <iomanip>
 #include <tuple>
 #include "Tuple.hpp"
 #include "Set.hpp"
+#include "Pair.hpp"
 #include "Vector.hpp"
 using namespace std;
 
@@ -55,7 +56,24 @@ public:
         optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
     
     DataSet() : dealDate(""), productCode(""), strikePrice(""), expirationDate(""), optionType(""), dealTime(""), dealPrice(""), dealVolume("") {}
-
+    string getCol1() const {
+        return dealDate;
+    }
+    string getCol2() const {
+        return productCode;
+    }
+    string getCol3() const {
+        return strikePrice;
+    }
+    string getCol4() const {
+        return expirationDate;
+    }
+    string getCol5() const {
+        return optionType;
+    }
+    string getCol6() const {
+        return dealTime;
+    }
     /*bool operator<(const DataSet& other) const {
         return productCode < other.productCode;
         if (this->productCode == other.productCode) { return this->strikePrice < other.strikePrice; }
@@ -83,11 +101,11 @@ public:
         return this->strikePrice.length() > other.strikePrice.length();
     }*/
     bool operator<(const DataSet& other) const {
-        return compareDecimals(this->strikePrice, other.strikePrice);
+        return compareDecimals(this->dealPrice, other.dealPrice);
     }
 
     bool operator>(const DataSet& other) const {
-        return compareDecimals(other.strikePrice, this->strikePrice);
+        return compareDecimals(other.dealPrice, this->dealPrice);
     }
 
     void print() {
@@ -157,11 +175,13 @@ public:
     }
 };
 
+long long cnt = 0;
 // 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 minHeap
 void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
     Set<Tuple<string>> uniqueData;
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
+            cnt++;
             DataSet data(
                 row.get(i),
                 row.get(i + 1),
@@ -176,6 +196,7 @@ void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
             uniqueData.insert(Tuple<string>(row.get(i + 1), row.get(i + 2), row.get(i + 3), row.get(i + 4)));
         }
     }
+    cout << "Total data count: " << cnt << endl;
     cout << "Unique data count: " << uniqueData.size() << endl;
 }
 
@@ -199,11 +220,6 @@ void readCSV(const string& filename) {
 int main() {
     const string filename = "DStest.txt";
     readCSV(filename);
-    // const string file1 = "OptionsDaily_2017_05_15.csv";
-    // const string file2 = "OptionsDaily_2017_05_16.csv";
-    // const string file3 = "OptionsDaily_2017_05_17.csv";
-    // const string file4 = "OptionsDaily_2017_05_18.csv";
-    // const string file5 = "OptionsDaily_2017_05_19.csv";
     for(int i=5; i<=9; i++){
         string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
         cout << file << endl;
@@ -212,9 +228,31 @@ int main() {
 
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
+    // int n = 10;
+    // while (n--) {
+    //     DataSet minData = minHeap.extractMin();
+    //     minData.print();
+    // }
+
+    // 建立一個新的 min heap 來存儲價格和時間
+    MinHeap priceTimeHeap;
+    // 建立一個 set 來存儲已經輸出過的 dealDate 和 dealTime
+    Set<Pair<string, string>> seen;
+    while (!minHeap.isEmpty()) {
+        DataSet data = minHeap.extractMin();
+        if (data.getCol2() == "    TXO     " && data.getCol3() == "9900" && data.getCol4() == "201705" && data.getCol5() == "    C     ") {
+            // 檢查這個 dealDate 和 dealTime 是否已經輸出過
+            if (seen.find({data.getCol1(), data.getCol6()}) == seen.end()) {
+                // 如果沒有輸出過，加到 set 和 heap
+                seen.insert({data.getCol1(), data.getCol6()});
+                priceTimeHeap.insert(data);
+            }
+        }
+    }
+
     int n = 10;
-    while (n--) {
-        DataSet minData = minHeap.extractMin();
+    while (n-- && !priceTimeHeap.isEmpty()) {
+        DataSet minData = priceTimeHeap.extractMin();
         minData.print();
     }
 
