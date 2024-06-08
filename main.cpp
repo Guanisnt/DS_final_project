@@ -283,7 +283,6 @@ void buildMaxHeapFromVector(const Vector<string>& row, MaxHeap& maxHeap) {
 
 // row 存放所有資料，每個 col 分開存
 Vector<string> row;  // 存 data 的 vector
-Vector<DataSet> dataSets;  // 存 DataSet 的 vector
 void readCSV(const string& filename) {
     ifstream file(filename);
     string line;
@@ -295,24 +294,67 @@ void readCSV(const string& filename) {
         while (getline(ss, field, ',')) {  // 逗號分隔
             row.push_back(field);
         }
-
-        if (row.size() == 8) {
-            DataSet data(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5), row.get(6), row.get(7));
-            dataSets.push_back(data);
-        }
     }
     file.close();
 }
 
+Vector<DataSet> dataSets;  // 存 DataSet 的 vector
+bool productExists(string productCode, string strikePrice, string expirationDate, string optionType) {
+    for (int i = 0; i < row.size(); i += 8) {
+        if (i + 7 < row.size()) {
+            DataSet data(
+                row.get(i),
+                row.get(i + 1),
+                row.get(i + 2),
+                row.get(i + 3),
+                row.get(i + 4),
+                row.get(i + 5),
+                row.get(i + 6),
+                row.get(i + 7)
+            );
+            dataSets.push_back(data);
+        }
+    }
+    for (int i = 0; i < dataSets.size(); ++i) {
+        const DataSet& data = dataSets.at(i);
+        if (data.getCol2() == productCode && data.getCol3() == strikePrice && data.getCol4() == expirationDate && data.getCol5() == optionType) {
+            return true;
+        }
+    }
+    return false;
+}
+
 int main() {
-    const string filename = "DStest.txt";
-    readCSV(filename);
     for(int i=5; i<=9; i++){
         string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
         cout << file << endl;
         readCSV(file);
     }
+    /*第 2 3 4 題*/
+    string product1 = "TXO_1000_201706_P";
+    string product2 = "TXO_9500_201706_C";
+    string product3 = "GIO_5500_201706_C";
 
+    if (productExists("    TXO     ", "1000", "201706", "    P     ")) {
+        cout << product1 << " exists in the datasets." << endl;
+    } else {
+        cout << product1 << " does not exist in the datasets." << endl;
+    }
+
+    if (productExists("    TXO     ", "9500", "201706", "    C     ")) {
+        cout << product2 << " exists in the datasets." << endl;
+    } else {
+        cout << product2 << " does not exist in the datasets." << endl;
+    }
+
+    if (productExists("    GIO     ", "5500", "201706", "    C     ")) {
+        cout << product3 << " exists in the datasets." << endl;
+    } else {
+        cout << product3 << " does not exist in the datasets." << endl;
+    }
+    /*************************************************************** */
+
+    /*第 5 題 a*/
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
 
@@ -338,19 +380,16 @@ int main() {
         minData.print();
     }
 
+    /*第 5 題 b*/
     cout<<"MaxHeap"<<endl;
     MaxHeap maxHeap;
     buildMaxHeapFromVector(row, maxHeap);
-    // 建立一個新的 max heap 來存儲價格和時間
     MaxHeap MaxPriceTimeHeap;
-    // 建立一個 set 來存儲已經輸出過的 dealDate 和 dealTime
     Set<Pair<string, string>> seen2;
     while (!maxHeap.isEmpty()) {
         DataSet data = maxHeap.extractMax();
         if (data.getCol2() == "    TXO     " && data.getCol3() == "9900" && data.getCol4() == "201705" && data.getCol5() == "    C     ") {
-            // 檢查這個 dealDate 和 dealTime 是否已經輸出過
             if (seen2.find({data.getCol1(), data.getCol6()}) == seen2.end()) {
-                // 如果沒有輸出過，加到 set 和 heap
                 seen2.insert({data.getCol1(), data.getCol6()});
                 MaxPriceTimeHeap.insert(data);
             }
