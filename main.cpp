@@ -4,7 +4,6 @@
 #include <string>
 #include <algorithm>
 #include <iomanip>
-#include <tuple>
 #include "Tuple.hpp"
 #include "Set.hpp"
 #include "Pair.hpp"
@@ -73,6 +72,9 @@ public:
     }
     string getCol6() const {
         return dealTime;
+    }
+    string getCol7() const {
+        return dealPrice;
     }
     /*bool operator<(const DataSet& other) const {
         return productCode < other.productCode;
@@ -200,8 +202,88 @@ void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
     cout << "Unique data count: " << uniqueData.size() << endl;
 }
 
+class MaxHeap {
+private:
+    Vector<DataSet> heap;  // 用 vector 作 heap
+
+    void heapifyUp(int index) {
+        while (index > 0 && heap.at((index - 1) / 2) < heap.at(index)) {  // 父節點比子節點小
+            swap(heap.at(index), heap.at((index - 1) / 2));  // 交換
+            index = (index - 1) / 2;  // 更新富節點
+        }
+    }
+
+    void heapifyDown(int index) {
+        int size = heap.size();
+        while (true) {
+            int left = 2 * index + 1;
+            int right = 2 * index + 2;
+            int largest = index;
+
+            if (left < size && heap.at(left) > heap.at(largest)) {  // 左子節點比較大
+                largest = left;
+            }
+
+            if (right < size && heap.at(right) > heap.at(largest)) {  // 右子節點比較大
+                largest = right;
+            }
+
+            if (largest != index) {
+                swap(heap.at(index), heap.at(largest));
+                index = largest;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+public:
+    void insert(const DataSet& data) {
+        heap.push_back(data);  // 每次都插入到最後一個
+        heapifyUp(heap.size() - 1); // 所以從最後一個開始 heapifyUp
+    }
+
+    DataSet extractMax() {
+        if (heap.empty()) {
+            throw runtime_error("Heap is empty");
+        }
+
+        DataSet maxData = heap.front();  // 把頭拿出來
+        heap.at(0) = heap.back();  // 把最後一個放到頭
+        heap.pop_back();  // 把最後一個刪掉
+        heapifyDown(0);  // 從頭開始 heapifyDown
+
+        return maxData;
+    }
+
+    bool isEmpty() const {
+        return heap.empty();
+    }
+};
+
+// 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 maxHeap
+void buildMaxHeapFromVector(const Vector<string>& row, MaxHeap& maxHeap) {
+    for (int i = 0; i < row.size(); i += 8) {
+        if (i + 7 < row.size()) {
+            DataSet data(
+                row.get(i),
+                row.get(i + 1),
+                row.get(i + 2),
+                row.get(i + 3),
+                row.get(i + 4),
+                row.get(i + 5),
+                row.get(i + 6),
+                row.get(i + 7)
+            );
+            maxHeap.insert(data);
+        }
+    }
+}
+
 // row 存放所有資料，每個 col 分開存
 Vector<string> row;  // 存 data 的 vector
+Vector<DataSet> dataSets;  // 存 DataSet 的 vector
 void readCSV(const string& filename) {
     ifstream file(filename);
     string line;
@@ -212,6 +294,11 @@ void readCSV(const string& filename) {
 
         while (getline(ss, field, ',')) {  // 逗號分隔
             row.push_back(field);
+        }
+
+        if (row.size() == 8) {
+            DataSet data(row.get(0), row.get(1), row.get(2), row.get(3), row.get(4), row.get(5), row.get(6), row.get(7));
+            dataSets.push_back(data);
         }
     }
     file.close();
@@ -228,11 +315,6 @@ int main() {
 
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
-    // int n = 10;
-    // while (n--) {
-    //     DataSet minData = minHeap.extractMin();
-    //     minData.print();
-    // }
 
     // 建立一個新的 min heap 來存儲價格和時間
     MinHeap priceTimeHeap;
@@ -255,6 +337,32 @@ int main() {
         DataSet minData = priceTimeHeap.extractMin();
         minData.print();
     }
+
+    cout<<"MaxHeap"<<endl;
+    MaxHeap maxHeap;
+    buildMaxHeapFromVector(row, maxHeap);
+    // 建立一個新的 max heap 來存儲價格和時間
+    MaxHeap MaxPriceTimeHeap;
+    // 建立一個 set 來存儲已經輸出過的 dealDate 和 dealTime
+    Set<Pair<string, string>> seen2;
+    while (!maxHeap.isEmpty()) {
+        DataSet data = maxHeap.extractMax();
+        if (data.getCol2() == "    TXO     " && data.getCol3() == "9900" && data.getCol4() == "201705" && data.getCol5() == "    C     ") {
+            // 檢查這個 dealDate 和 dealTime 是否已經輸出過
+            if (seen2.find({data.getCol1(), data.getCol6()}) == seen2.end()) {
+                // 如果沒有輸出過，加到 set 和 heap
+                seen2.insert({data.getCol1(), data.getCol6()});
+                MaxPriceTimeHeap.insert(data);
+            }
+        }
+    }
+
+    n = 10;
+    while (n-- && !MaxPriceTimeHeap.isEmpty()) {
+        DataSet maxData = MaxPriceTimeHeap.extractMax();
+        maxData.print();
+    }
+
 
     return 0;
 }
