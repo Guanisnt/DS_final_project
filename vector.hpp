@@ -10,6 +10,8 @@ private:
     int current;
 
 public:
+    using Iterator = T*;
+    
     Vector() {
         arr = new T[1];
         capacity = 1;
@@ -84,6 +86,19 @@ public:
             return arr[current - 1];
         }
         return T();
+    }
+
+    Iterator find(const T& value) {
+        for (int i = 0; i < current; i++) {
+            if (arr[i] == value) {
+                return &arr[i];
+            }
+        }
+        return end();
+    }
+
+    Iterator end() {
+        return &arr[current];
     }
 
     ~Vector() {
