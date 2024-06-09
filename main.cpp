@@ -167,7 +167,7 @@ public:
 long long cnt = 0;
 // 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 minHeap
 void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
-    Set<Tuple<string>> uniqueData;
+    Set<Tuple<string>> uniqueData;  // 第一題
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
             cnt++;
@@ -187,85 +187,6 @@ void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
     }
     cout << "Total data count: " << cnt << endl;
     cout << "Unique data count: " << uniqueData.size() << endl;
-}
-
-class MaxHeap {
-private:
-    Vector<DataSet> heap;  // 用 vector 作 heap
-
-    void heapifyUp(int index) {
-        while (index > 0 && heap.at((index - 1) / 2) < heap.at(index)) {  // 父節點比子節點小
-            swap(heap.at(index), heap.at((index - 1) / 2));  // 交換
-            index = (index - 1) / 2;  // 更新富節點
-        }
-    }
-
-    void heapifyDown(int index) {
-        int size = heap.size();
-        while (true) {
-            int left = 2 * index + 1;
-            int right = 2 * index + 2;
-            int largest = index;
-
-            if (left < size && heap.at(left) > heap.at(largest)) {  // 左子節點比較大
-                largest = left;
-            }
-
-            if (right < size && heap.at(right) > heap.at(largest)) {  // 右子節點比較大
-                largest = right;
-            }
-
-            if (largest != index) {
-                swap(heap.at(index), heap.at(largest));
-                index = largest;
-            }
-            else {
-                break;
-            }
-        }
-    }
-
-public:
-    void insert(const DataSet& data) {
-        heap.push_back(data);  // 每次都插入到最後一個
-        heapifyUp(heap.size() - 1); // 所以從最後一個開始 heapifyUp
-    }
-
-    DataSet extractMax() {
-        if (heap.empty()) {
-            throw runtime_error("Heap is empty");
-        }
-
-        DataSet maxData = heap.front();  // 把頭拿出來
-        heap.at(0) = heap.back();  // 把最後一個放到頭
-        heap.pop_back();  // 把最後一個刪掉
-        heapifyDown(0);  // 從頭開始 heapifyDown
-
-        return maxData;
-    }
-
-    bool isEmpty() const {
-        return heap.empty();
-    }
-};
-
-// 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 maxHeap
-void buildMaxHeapFromVector(const Vector<string>& row, MaxHeap& maxHeap) {
-    for (int i = 0; i < row.size(); i += 8) {
-        if (i + 7 < row.size()) {
-            DataSet data(
-                row.get(i),
-                row.get(i + 1),
-                row.get(i + 2),
-                row.get(i + 3),
-                row.get(i + 4),
-                row.get(i + 5),
-                row.get(i + 6),
-                row.get(i + 7)
-            );
-            maxHeap.insert(data);
-        }
-    }
 }
 
 // row 存放所有資料，每個 col 分開存
@@ -321,6 +242,24 @@ void sortVector(Vector<string>& vec) {
     }
 }
 
+Vector<DataSet> heapSort(MinHeap& minHeap) {
+    Vector<DataSet> sortedVector;
+    Set<Pair<string, string>> seen;
+    while (!minHeap.isEmpty()) {
+        DataSet data = minHeap.extractMin();
+        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
+            // 檢查這個 dealDate 和 dealTime 是否已經輸出過
+            if (seen.find({data.getDealDate(), data.getDealTime()}) == seen.end()) {
+                // 如果沒有輸出過，加到 set 和 heap
+                seen.insert({data.getDealDate(), data.getDealTime()});
+                sortedVector.push_back(data);
+            }
+        }
+    }
+    return sortedVector;
+}
+
+
 int main() {
     for(int i=5; i<=9; i++){
         string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
@@ -355,74 +294,27 @@ int main() {
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
 
-    // 建立一個新的 min heap 來存儲價格和時間
-    MinHeap priceTimeHeap;
-    // 建立一個 set 來存儲已經輸出過的 dealDate 和 dealTime
-    Set<Pair<string, string>> seen;
-    while (!minHeap.isEmpty()) {
-        DataSet data = minHeap.extractMin();
-        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
-            // 檢查這個 dealDate 和 dealTime 是否已經輸出過
-            if (seen.find({data.getDealDate(), data.getDealTime()}) == seen.end()) {
-                // 如果沒有輸出過，加到 set 和 heap
-                seen.insert({data.getDealDate(), data.getDealTime()});
-                priceTimeHeap.insert(data);
-            }
-        }
-    }
-
-    int n = 10;
-    while (n-- && !priceTimeHeap.isEmpty()) {
-        DataSet minData = priceTimeHeap.extractMin();
-        minData.print();
+    Vector<DataSet> sortedData = heapSort(minHeap);
+    cout << "10 samllest prices for TXO_9900_201705_C" << endl;
+    for (int i = 0; i < 10; i++) {
+        sortedData.at(i).print();
     }
 
     /*第 5 題 b*/
-    cout << "MaxHeap" << endl;
-    MaxHeap maxHeap;
-    buildMaxHeapFromVector(row, maxHeap);
-    MaxHeap MaxPriceTimeHeap;
-    Set<Pair<string, string>> seen2;
-    while (!maxHeap.isEmpty()) {
-        DataSet data = maxHeap.extractMax();
-        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
-            if (seen2.find({data.getDealDate(), data.getDealTime()}) == seen2.end()) {
-                seen2.insert({data.getDealDate(), data.getDealTime()});
-                MaxPriceTimeHeap.insert(data);
-            }
-        }
+    cout << "10 largest prices for TXO_9900_201705_C" << endl;
+    for (int i = sortedData.size() - 1; i >= sortedData.size() - 10; i--) {
+        sortedData.at(i).print();
     }
 
-    n = 10;
-    while (n-- && !MaxPriceTimeHeap.isEmpty()) {
-        DataSet maxData = MaxPriceTimeHeap.extractMax();
-        maxData.print();
-    }
-
-    /**第 5 題c */
-    MaxHeap maxHeap2;
-    buildMaxHeapFromVector(row, maxHeap2);
-    Vector<string> prices;
-
-    while (!maxHeap2.isEmpty()) {
-        DataSet data = maxHeap2.extractMax();
-        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
-            prices.push_back(data.getDealPrice());
-        }
-    }
-
-    sortVector(prices);
-
-    int size = prices.size();
+    /*第 5 題 c*/
+    cout << "meidan price for TXO_9900_201705_C: ";
     string medianPrice;
-    if (size % 2 == 0) {
-        medianPrice = prices.at(size / 2 - 1);
+    if (sortedData.size() % 2 == 0) {
+        medianPrice = sortedData.at(sortedData.size() / 2).getDealPrice();
     } else {
-        medianPrice = prices.at(size / 2);
+        medianPrice = sortedData.at(sortedData.size() / 2).getDealPrice();
     }
-
-    cout << "Median Price for TXO_9900_201705_C: " << medianPrice << endl;
-
+    cout << medianPrice << endl;
 
     return 0;
 }
