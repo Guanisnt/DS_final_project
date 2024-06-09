@@ -55,27 +55,14 @@ public:
         optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
     
     DataSet() : dealDate(""), productCode(""), strikePrice(""), expirationDate(""), optionType(""), dealTime(""), dealPrice(""), dealVolume("") {}
-    string getCol1() const {
-        return dealDate;
-    }
-    string getCol2() const {
-        return productCode;
-    }
-    string getCol3() const {
-        return strikePrice;
-    }
-    string getCol4() const {
-        return expirationDate;
-    }
-    string getCol5() const {
-        return optionType;
-    }
-    string getCol6() const {
-        return dealTime;
-    }
-    string getCol7() const {
-        return dealPrice;
-    }
+    string getDealDate() const {return dealDate;}
+    string getProductCode() const {return productCode;}
+    string getStrikePrice() const {return strikePrice;}
+    string getExpirationDate() const {return expirationDate;}
+    string getOptionType() const {return optionType;}
+    string getDealTime() const {return dealTime;}
+    string getDealPrice() const {return dealPrice;}
+    string getDealVolume() const {return dealVolume;}
     /*bool operator<(const DataSet& other) const {
         return productCode < other.productCode;
         if (this->productCode == other.productCode) { return this->strikePrice < other.strikePrice; }
@@ -317,11 +304,21 @@ bool productExists(string productCode, string strikePrice, string expirationDate
     }
     for (int i = 0; i < dataSets.size(); ++i) {
         const DataSet& data = dataSets.at(i);
-        if (data.getCol2() == productCode && data.getCol3() == strikePrice && data.getCol4() == expirationDate && data.getCol5() == optionType) {
+        if (data.getProductCode() == productCode && data.getStrikePrice() == strikePrice && data.getExpirationDate() == expirationDate && data.getOptionType() == optionType) {
             return true;
         }
     }
     return false;
+}
+
+void sortVector(Vector<string>& vec) {
+    for (int i = 0; i < vec.size(); ++i) {
+        for (int j = 0; j < vec.size() - 1; ++j) {
+            if (!compareDecimals(vec.at(j), vec.at(j + 1))) {  // 如果前面的比後面的大
+                swap(vec.at(j), vec.at(j + 1));
+            }
+        }
+    }
 }
 
 int main() {
@@ -364,11 +361,11 @@ int main() {
     Set<Pair<string, string>> seen;
     while (!minHeap.isEmpty()) {
         DataSet data = minHeap.extractMin();
-        if (data.getCol2() == "    TXO     " && data.getCol3() == "9900" && data.getCol4() == "201705" && data.getCol5() == "    C     ") {
+        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
             // 檢查這個 dealDate 和 dealTime 是否已經輸出過
-            if (seen.find({data.getCol1(), data.getCol6()}) == seen.end()) {
+            if (seen.find({data.getDealDate(), data.getDealTime()}) == seen.end()) {
                 // 如果沒有輸出過，加到 set 和 heap
-                seen.insert({data.getCol1(), data.getCol6()});
+                seen.insert({data.getDealDate(), data.getDealTime()});
                 priceTimeHeap.insert(data);
             }
         }
@@ -381,16 +378,16 @@ int main() {
     }
 
     /*第 5 題 b*/
-    cout<<"MaxHeap"<<endl;
+    cout << "MaxHeap" << endl;
     MaxHeap maxHeap;
     buildMaxHeapFromVector(row, maxHeap);
     MaxHeap MaxPriceTimeHeap;
     Set<Pair<string, string>> seen2;
     while (!maxHeap.isEmpty()) {
         DataSet data = maxHeap.extractMax();
-        if (data.getCol2() == "    TXO     " && data.getCol3() == "9900" && data.getCol4() == "201705" && data.getCol5() == "    C     ") {
-            if (seen2.find({data.getCol1(), data.getCol6()}) == seen2.end()) {
-                seen2.insert({data.getCol1(), data.getCol6()});
+        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
+            if (seen2.find({data.getDealDate(), data.getDealTime()}) == seen2.end()) {
+                seen2.insert({data.getDealDate(), data.getDealTime()});
                 MaxPriceTimeHeap.insert(data);
             }
         }
@@ -401,6 +398,30 @@ int main() {
         DataSet maxData = MaxPriceTimeHeap.extractMax();
         maxData.print();
     }
+
+    /**第 5 題c */
+    MaxHeap maxHeap2;
+    buildMaxHeapFromVector(row, maxHeap2);
+    Vector<string> prices;
+
+    while (!maxHeap2.isEmpty()) {
+        DataSet data = maxHeap2.extractMax();
+        if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
+            prices.push_back(data.getDealPrice());
+        }
+    }
+
+    sortVector(prices);
+
+    int size = prices.size();
+    string medianPrice;
+    if (size % 2 == 0) {
+        medianPrice = prices.at(size / 2 - 1);
+    } else {
+        medianPrice = prices.at(size / 2);
+    }
+
+    cout << "Median Price for TXO_9900_201705_C: " << medianPrice << endl;
 
 
     return 0;
