@@ -8,6 +8,7 @@
 #include "Set.hpp"
 #include "Pair.hpp"
 #include "Vector.hpp"
+#include "Pair3.hpp"
 using namespace std;
 
 /*split 和 compareDecimals 是處理字串數字比大小的*/
@@ -244,14 +245,14 @@ void sortVector(Vector<string>& vec) {
 
 Vector<DataSet> heapSort(MinHeap& minHeap) {
     Vector<DataSet> sortedVector;
-    Set<Pair<string, string>> seen;
+    Set<Pair3<string, string, string>> seen;
     while (!minHeap.isEmpty()) {
         DataSet data = minHeap.extractMin();
         if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
             // 檢查這個 dealDate 和 dealTime 是否已經輸出過
-            if (seen.find({data.getDealDate(), data.getDealTime()}) == seen.end()) {
+            if (seen.find({data.getDealDate(), data.getDealTime(), data.getDealPrice()}) == seen.end()) {
                 // 如果沒有輸出過，加到 set 和 heap
-                seen.insert({data.getDealDate(), data.getDealTime()});
+                seen.insert({data.getDealDate(), data.getDealTime(), data.getDealPrice()});
                 sortedVector.push_back(data);
             }
         }
