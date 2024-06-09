@@ -8,6 +8,7 @@
 #include "Set.hpp"
 #include "Pair.hpp"
 #include "Vector.hpp"
+#include "Pair3.hpp"
 using namespace std;
 
 /*split 和 compareDecimals 是處理字串數字比大小的*/
@@ -232,11 +233,23 @@ bool productExists(string productCode, string strikePrice, string expirationDate
     return false;
 }
 
-void sortVector(Vector<string>& vec) {
-    for (int i = 0; i < vec.size(); ++i) {
-        for (int j = 0; j < vec.size() - 1; ++j) {
-            if (!compareDecimals(vec.at(j), vec.at(j + 1))) {  // 如果前面的比後面的大
-                swap(vec.at(j), vec.at(j + 1));
+Vector<DataSet> dataSetForTick;  // 存 DataSet 的 vector
+void filterDataSets(const string& productCode, const string& strikePrice, const string& expirationDate, const string& optionType) {
+    for (int i = 0; i < row.size(); i += 8) {
+        if (i + 7 < row.size()) {
+            DataSet data(
+                row.get(i),
+                row.get(i + 1),
+                row.get(i + 2),
+                row.get(i + 3),
+                row.get(i + 4),
+                row.get(i + 5),
+                row.get(i + 6),
+                row.get(i + 7)
+            );
+
+            if (data.getProductCode() == productCode && data.getStrikePrice() == strikePrice && data.getExpirationDate() == expirationDate && data.getOptionType() == optionType) {
+                dataSetForTick.push_back(data);
             }
         }
     }
@@ -244,19 +257,47 @@ void sortVector(Vector<string>& vec) {
 
 Vector<DataSet> heapSort(MinHeap& minHeap) {
     Vector<DataSet> sortedVector;
-    Set<Pair<string, string>> seen;
+    Set<Pair3<string, string, string>> seen;
     while (!minHeap.isEmpty()) {
         DataSet data = minHeap.extractMin();
         if (data.getProductCode() == "    TXO     " && data.getStrikePrice() == "9900" && data.getExpirationDate() == "201705" && data.getOptionType() == "    C     ") {
             // 檢查這個 dealDate 和 dealTime 是否已經輸出過
-            if (seen.find({data.getDealDate(), data.getDealTime()}) == seen.end()) {
+            if (seen.find({data.getDealDate(), data.getDealTime(), data.getDealPrice()}) == seen.end()) {
                 // 如果沒有輸出過，加到 set 和 heap
-                seen.insert({data.getDealDate(), data.getDealTime()});
+                seen.insert({data.getDealDate(), data.getDealTime(), data.getDealPrice()});
                 sortedVector.push_back(data);
             }
         }
     }
     return sortedVector;
+}
+
+void computeTick(Vector<DataSet>& dataSets) {
+    double maxReturn = -1.0;
+    double minReturn = 1.0;
+    DataSet maxReturnData;
+    DataSet minReturnData;
+
+    for (size_t i = 1; i < dataSets.size(); ++i) {
+        double previousPrice = stod(dataSets.at(i - 1).getDealPrice());
+        double currentPrice = stod(dataSets.at(i).getDealPrice());
+        double tickReturn = (currentPrice - previousPrice) / previousPrice;
+
+        if (tickReturn > maxReturn) {
+            maxReturn = tickReturn;
+            maxReturnData = dataSets.at(i);
+        }
+
+        if (tickReturn < minReturn) {
+            minReturn = tickReturn;
+            minReturnData = dataSets.at(i);
+        }
+    }
+
+    cout << "Max Return: " << maxReturn << " at ";
+    maxReturnData.print();
+    cout << "Min Return: " << minReturn << " at ";
+    minReturnData.print();
 }
 
 
@@ -315,6 +356,10 @@ int main() {
         medianPrice = sortedData.at(sortedData.size() / 2).getDealPrice();
     }
     cout << medianPrice << endl;
+
+    /*第 5 題 d*/
+    filterDataSets("    TXO     ", "9900", "201705", "    C     ");
+    computeTick(dataSetForTick);
 
     return 0;
 }
