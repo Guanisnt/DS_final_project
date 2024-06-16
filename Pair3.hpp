@@ -10,7 +10,8 @@ public:
     T3 third;
 
     Pair3(const T1& first, const T2& second, const T3& third) : first(first), second(second), third(third) {}
-    Pair3() : first(""), second(""), third("") {}
+    // Pair3() : first(""), second(""), third("") {}
+    Pair3() = default;
 
     bool operator<(const Pair3& other) const {
         if (first == other.first) {

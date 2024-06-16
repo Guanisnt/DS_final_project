@@ -4,6 +4,9 @@
 #include <string>
 #include <fstream>
 #include <algorithm>
+#include "Pair3.hpp"
+#include "Pair.hpp"
+#include "Set.hpp"
 using namespace std;
 
 class DataSet {
@@ -52,7 +55,9 @@ public:
     DataSet data;
     AVLTreeNode *left;
     AVLTreeNode *right;
+    int count;
     int height;
+    AVLTreeNode() : data(), left(nullptr), right(nullptr), count(1), height(1) {}
 };
 
 int height(AVLTreeNode *node) {
@@ -116,6 +121,9 @@ int getBalance(AVLTreeNode *node) {
 }
 
 AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
+    // if (node != nullptr && node->data.getDealTime() == data.getDealTime() && node->data.getDealPrice() == data.getDealPrice() && node->data.getDealDate() == data.getDealDate()){
+    //     return node;  // 如果存在相同的 dealTime，直接返回
+    // }
     // 先照 BST 的方式插入
     if (node == nullptr) return(newNode(data));
     // 遞迴找位置
@@ -124,6 +132,7 @@ AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
     } else if (data > node->data) {
         node->right = insert(node->right, data);
     } else {  // 相等的話不插入
+        node->count++;
         return node;
     }
 
@@ -151,14 +160,24 @@ AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
     return node;
 }
 
+// void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
+//     if (root != nullptr) {
+//         inOrder(root->left, vec);
+//         vec.push_back(root->data);
+//         inOrder(root->right, vec);
+//     }
+// }
 void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
     if (root != nullptr) {
         inOrder(root->left, vec);
-        vec.push_back(root->data);
+        for (int i = 0; i < root->count; ++i) {  // 重複的 price 也輸出
+            vec.push_back(root->data);
+        }
         inOrder(root->right, vec);
     }
 }
 
+Set<Pair<string, double>> seen;
 void readCSV(const string& filename, AVLTreeNode*& root) {
     ifstream file(filename.c_str());
     string line;
@@ -188,7 +207,12 @@ void readCSV(const string& filename, AVLTreeNode*& root) {
         // root = insert(root, data);
         if (productCode == "    TXO     " && strikePrice == 9900 && expirationDate == "201705" && optionType == "    C     ") {
             DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
-            root = insert(root, data);
+            if (seen.find({data.getDealTime(), data.getDealPrice()}) == seen.end()) {
+                // 如果沒有輸出過，加到 set 和 tree
+                seen.insert({data.getDealTime(), data.getDealPrice()});
+                root = insert(root, data);
+            }
+            // root = insert(root, data);
         }
     }
 
@@ -200,15 +224,17 @@ void printTopAndBottom10(AVLTreeNode* root) {
     inOrder(root, vec);
     int n = vec.size();
 
-    cout << "前10小的節點:" << endl;
-    for (int i = 0; i < 10 && i < n; ++i) {
-        cout << vec.at(i).getDealPrice() << " ";
+    cout << "10 samllest prices for TXO_9900_201705_C:" << endl;
+    for (int i = 0; i < 10 && i < n; i++) {
+        // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
+        vec.at(i).print();
     }
     cout << endl;
 
-    cout << "前10大的節點:" << endl;
-    for (int i = n - 1; i >= n - 10 && i >= 0; --i) {
-        cout << vec.at(i).getDealPrice() << " ";
+    cout << "10 largest prices for TXO_9900_201705_C:" << endl;
+    for (int i = n - 1; i >= n - 10 && i >= 0; i--) {
+        // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
+        vec.at(i).print();
     }
     cout << endl;
 }
@@ -220,7 +246,6 @@ int main() {
         cout << file << endl;
         readCSV(file, root);
     }
-    cout << "10 samllest prices for TXO_9900_201705_C" << endl;
     printTopAndBottom10(root);
 
     return 0;
