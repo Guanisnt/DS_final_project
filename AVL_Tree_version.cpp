@@ -35,12 +35,25 @@ public:
     double getDealPrice() const { return dealPrice; }
     string getDealVolume() const { return dealVolume; }
 
+    // 這裡要改成就算 dealPrice 一樣，只要 dealTime 不一樣也可以插入
     bool operator<(const DataSet& other) const {
-        return this->dealPrice < other.dealPrice;
+        if (this->dealPrice < other.dealPrice) {
+            return true;
+        } else if (this->dealPrice == other.dealPrice) {
+            return this->dealTime < other.dealTime;
+        } else {
+            return false;
+        }
     }
 
     bool operator>(const DataSet& other) const {
-        return this->dealPrice > other.dealPrice;
+        if (this->dealPrice > other.dealPrice) {
+            return true;
+        } else if (this->dealPrice == other.dealPrice) {
+            return this->dealTime > other.dealTime;
+        } else {
+            return false;
+        }
     }
 
     void print() {
@@ -121,9 +134,6 @@ int getBalance(AVLTreeNode *node) {
 }
 
 AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
-    // if (node != nullptr && node->data.getDealTime() == data.getDealTime() && node->data.getDealPrice() == data.getDealPrice() && node->data.getDealDate() == data.getDealDate()){
-    //     return node;  // 如果存在相同的 dealTime
-    // }
     // 先照 BST 的方式插入
     if (node == nullptr) return(newNode(data));
     // 遞迴找位置
@@ -160,29 +170,30 @@ AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
     return node;
 }
 
-// void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
-//     if (root != nullptr) {
-//         inOrder(root->left, vec);
-//         vec.push_back(root->data);
-//         inOrder(root->right, vec);
-//     }
-// }
 void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
     if (root != nullptr) {
         inOrder(root->left, vec);
-        for (int i = 0; i < root->count; ++i) {  // 重複的 price 也輸出
-            vec.push_back(root->data);
-        }
+        vec.push_back(root->data);
         inOrder(root->right, vec);
     }
 }
+// void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
+//     if (root != nullptr) {
+//         inOrder(root->left, vec);
+//         for (int i = 0; i < root->count; ++i) {  // 重複的 price 也輸出
+//             vec.push_back(root->data);
+//         }
+//         inOrder(root->right, vec);
+//     }
+// }
+int cnt =  0;
 
-// Set<Pair<string, double>> seen;
-Set<Pair<string, double>> seen;
+// Set<Pair3<string, double, string>> seen;
+// Set<string> seen;
 void readCSV(const string& filename, AVLTreeNode*& root) {
     ifstream file(filename.c_str());
     string line;
-
+    Set<Pair<string, double>> seen;
     if (!file.is_open()) {
         cout << "open fail: " << filename << endl;
         return;
@@ -203,19 +214,20 @@ void readCSV(const string& filename, AVLTreeNode*& root) {
         getline(ss, dealTime, ',');
         ss >> dealPrice >> delimiter;
         getline(ss, dealVolume, ',');
-
+        
         DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
         // root = insert(root, data);
-        if (productCode == "    TXO     " && strikePrice == 9900 && expirationDate == "201705" && optionType == "    C     ") {
+        if (productCode == "    TXO     " && strikePrice == 9900.0 && expirationDate == "201705" && optionType == "    C     ") {
             // DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
             if (seen.find({dealTime, dealPrice}) == seen.end()) {
                 // 如果沒有輸出過，加到 set 和 tree
                 seen.insert({dealTime, dealPrice});
                 root = insert(root, data);
+                cnt++;
             }
         }
     }
-
+cout << cnt << endl;
     file.close();
 }
 
@@ -224,7 +236,7 @@ void printTopAndBottom10(AVLTreeNode* root) {
     inOrder(root, vec);
     int n = vec.size();
 
-    cout << "10 samllest prices for TXO_9900_201705_C:" << endl;
+    cout << "10 smallest prices for TXO_9900_201705_C:" << endl;
     for (int i = 0; i < 10 && i < n; i++) {
         // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
         vec.at(i).print();
