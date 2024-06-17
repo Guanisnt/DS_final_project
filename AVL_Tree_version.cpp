@@ -122,7 +122,7 @@ int getBalance(AVLTreeNode *node) {
 
 AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
     // if (node != nullptr && node->data.getDealTime() == data.getDealTime() && node->data.getDealPrice() == data.getDealPrice() && node->data.getDealDate() == data.getDealDate()){
-    //     return node;  // 如果存在相同的 dealTime，直接返回
+    //     return node;  // 如果存在相同的 dealTime
     // }
     // 先照 BST 的方式插入
     if (node == nullptr) return(newNode(data));
@@ -177,6 +177,7 @@ void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
     }
 }
 
+// Set<Pair<string, double>> seen;
 Set<Pair<string, double>> seen;
 void readCSV(const string& filename, AVLTreeNode*& root) {
     ifstream file(filename.c_str());
@@ -203,16 +204,15 @@ void readCSV(const string& filename, AVLTreeNode*& root) {
         ss >> dealPrice >> delimiter;
         getline(ss, dealVolume, ',');
 
-        // DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
+        DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
         // root = insert(root, data);
         if (productCode == "    TXO     " && strikePrice == 9900 && expirationDate == "201705" && optionType == "    C     ") {
-            DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
-            if (seen.find({data.getDealTime(), data.getDealPrice()}) == seen.end()) {
+            // DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
+            if (seen.find({dealTime, dealPrice}) == seen.end()) {
                 // 如果沒有輸出過，加到 set 和 tree
-                seen.insert({data.getDealTime(), data.getDealPrice()});
+                seen.insert({dealTime, dealPrice});
                 root = insert(root, data);
             }
-            // root = insert(root, data);
         }
     }
 
@@ -239,6 +239,17 @@ void printTopAndBottom10(AVLTreeNode* root) {
     cout << endl;
 }
 
+void findMedian(AVLTreeNode* root) {
+    Vector<DataSet> vec;
+    inOrder(root, vec);
+    int n = vec.size();
+    if (n % 2 == 0) {
+        cout << "Median price for TXO_9900_201705_C: " << (vec.at(n / 2).getDealPrice() + vec.at(n / 2 - 1).getDealPrice()) / 2 << endl;
+    } else {
+        cout << "Median price for TXO_9900_201705_C: " << vec.at(n / 2).getDealPrice() << endl;
+    }
+}
+
 int main() {
     AVLTreeNode *root = nullptr;
     for(int i=5; i<=9; i++){
@@ -247,6 +258,7 @@ int main() {
         readCSV(file, root);
     }
     printTopAndBottom10(root);
+    findMedian(root);
 
     return 0;
 }
