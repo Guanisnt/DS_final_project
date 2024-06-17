@@ -142,7 +142,6 @@ AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
     } else if (data > node->data) {
         node->right = insert(node->right, data);
     } else {  // 相等的話不插入
-        node->count++;
         return node;
     }
 
@@ -177,19 +176,7 @@ void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
         inOrder(root->right, vec);
     }
 }
-// void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
-//     if (root != nullptr) {
-//         inOrder(root->left, vec);
-//         for (int i = 0; i < root->count; ++i) {  // 重複的 price 也輸出
-//             vec.push_back(root->data);
-//         }
-//         inOrder(root->right, vec);
-//     }
-// }
-int cnt =  0;
 
-// Set<Pair3<string, double, string>> seen;
-// Set<string> seen;
 void readCSV(const string& filename, AVLTreeNode*& root) {
     ifstream file(filename.c_str());
     string line;
@@ -215,19 +202,15 @@ void readCSV(const string& filename, AVLTreeNode*& root) {
         ss >> dealPrice >> delimiter;
         getline(ss, dealVolume, ',');
         
-        DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
-        // root = insert(root, data);
         if (productCode == "    TXO     " && strikePrice == 9900.0 && expirationDate == "201705" && optionType == "    C     ") {
-            // DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
+            DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
             if (seen.find({dealTime, dealPrice}) == seen.end()) {
                 // 如果沒有輸出過，加到 set 和 tree
                 seen.insert({dealTime, dealPrice});
                 root = insert(root, data);
-                cnt++;
             }
         }
     }
-cout << cnt << endl;
     file.close();
 }
 
