@@ -176,11 +176,11 @@ void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
         inOrder(root->right, vec);
     }
 }
-
+Set<Pair<string, double>> seen;
 void readCSV(const string& filename, AVLTreeNode*& root) {
     ifstream file(filename.c_str());
     string line;
-    Set<Pair<string, double>> seen;
+    
     if (!file.is_open()) {
         cout << "open fail: " << filename << endl;
         return;
@@ -212,6 +212,26 @@ void readCSV(const string& filename, AVLTreeNode*& root) {
         }
     }
     file.close();
+}
+
+void computeTick() {
+    double maxReturn = -1.0;
+    double minReturn = 1.0;
+    // for(int i=0; i<seen.size(); i++){
+    //     for(int j=i+1; j<seen.size(); j++){
+    //         double returnRate = (seen.get(j).second - seen.get(i).second) / seen.get(i).second;
+    //         maxReturn = max(maxReturn, returnRate);
+    //         minReturn = min(minReturn, returnRate);
+    //     }
+    // }
+    for(int i=1; i<seen.size(); i++) {
+        double returnRate = (seen.get(i).second - seen.get(i-1).second) / seen.get(i-1).second;
+        maxReturn = max(maxReturn, returnRate);
+        minReturn = min(minReturn, returnRate);
+    }
+
+    cout << "Max return rate: " << maxReturn << endl;
+    cout << "Min return rate: " << minReturn << endl;
 }
 
 void printTopAndBottom10(AVLTreeNode* root) {
@@ -254,6 +274,6 @@ int main() {
     }
     printTopAndBottom10(root);
     findMedian(root);
-
+    computeTick();
     return 0;
 }
