@@ -9,6 +9,7 @@
 #include "Pair.hpp"
 #include "Vector.hpp"
 #include "Pair3.hpp"
+#include "AVLTree.hpp"
 using namespace std;
 
 /*split 和 compareDecimals 是處理字串數字比大小的*/
@@ -168,7 +169,6 @@ public:
 long long cnt = 0;
 // 每 8 個 col 一組，建成 DataSet 的物件，把物件差到 minHeap
 void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
-    Set<Tuple<string>> uniqueData;  // 第一題
     for (int i = 0; i < row.size(); i += 8) {
         if (i + 7 < row.size()) {
             cnt++;
@@ -183,11 +183,9 @@ void buildMinHeapFromVector(const Vector<string>& row, MinHeap& minHeap) {
                 row.get(i + 7)
             );
             minHeap.insert(data);
-            uniqueData.insert(Tuple<string>(row.get(i + 1), row.get(i + 2), row.get(i + 3), row.get(i + 4)));
         }
     }
     cout << "Total data count: " << cnt << endl;
-    cout << "Unique data count: " << uniqueData.size() << endl;
 }
 
 // row 存放所有資料，每個 col 分開存
@@ -207,30 +205,18 @@ void readCSV(const string& filename) {
     file.close();
 }
 
-Vector<DataSet> dataSets;  // 存 DataSet 的 vector
-bool productExists(string productCode, string strikePrice, string expirationDate, string optionType) {
-    for (int i = 0; i < row.size(); i += 8) {
-        if (i + 7 < row.size()) {
-            DataSet data(
-                row.get(i),
-                row.get(i + 1),
-                row.get(i + 2),
-                row.get(i + 3),
-                row.get(i + 4),
-                row.get(i + 5),
-                row.get(i + 6),
-                row.get(i + 7)
-            );
-            dataSets.push_back(data);
+void BuildAVLTree(AVLTree& Tree){
+    int size=0;
+    for(int i=0; i < row.size(); i+=8){
+        if(i + 7 < row.size()){
+            Tuple<string> item(row.get(i+1),row.get(i+2),row.get(i+3),row.get(i+4));
+            if(!Tree.search(item)){
+                size++;
+                Tree.insert(item);
+            }
         }
     }
-    for (int i = 0; i < dataSets.size(); ++i) {
-        const DataSet& data = dataSets.at(i);
-        if (data.getProductCode() == productCode && data.getStrikePrice() == strikePrice && data.getExpirationDate() == expirationDate && data.getOptionType() == optionType) {
-            return true;
-        }
-    }
-    return false;
+    cout << "Unique data count: " << size << endl;
 }
 
 Vector<DataSet> dataSetForTick;  // 存 DataSet 的 vector
@@ -307,31 +293,34 @@ int main() {
         cout << file << endl;
         readCSV(file);
     }
-    /*第 2 3 4 題*/
+    AVLTree uniqueData;
+    BuildAVLTree(uniqueData);
+
+    //uniqueData.preOrder();
+    // /*第 2 3 4 題*/
     string product1 = "TXO_1000_201706_P";
     string product2 = "TXO_9500_201706_C";
     string product3 = "GIO_5500_201706_C";
 
-    if (productExists("    TXO     ", "1000", "201706", "    P     ")) {
-        cout << product1 << " exists in the datasets." << endl;
-    } else {
-        cout << product1 << " does not exist in the datasets." << endl;
-    }
+    if(uniqueData.search({"    TXO     ","1000","201706","    P     "}))
+        cout << product1 << " exists\n";
+    else   
+        cout << product1 << " not exists\n";
 
-    if (productExists("    TXO     ", "9500", "201706", "    C     ")) {
-        cout << product2 << " exists in the datasets." << endl;
-    } else {
-        cout << product2 << " does not exist in the datasets." << endl;
-    }
+    if(uniqueData.search({"    TXO     ","9500","201706","    C     "}))
+        cout << product2 << " exists\n";
+    else   
+        cout << product2 << " not exists\n";
 
-    if (productExists("    GIO     ", "5500", "201706", "    C     ")) {
-        cout << product3 << " exists in the datasets." << endl;
-    } else {
-        cout << product3 << " does not exist in the datasets." << endl;
-    }
+    if(uniqueData.search({"    GIO     ","5500","201706","    C     "}))
+        cout << product3 << " exists\n";
+    else   
+        cout << product3 << " not exists\n";
+
+
     /*************************************************************** */
 
-    /*第 5 題 a*/
+    // /*第 5 題 a*/
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
 
