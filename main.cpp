@@ -278,7 +278,7 @@ void computeTick(Vector<DataSet>& dataSets) {
     DataSet maxReturnData;
     DataSet minReturnData;
 
-    for (size_t i = 1; i < dataSets.size(); ++i) {
+    for (int i = 1; i < dataSets.size(); ++i) {
         double previousPrice = stod(dataSets.at(i - 1).getDealPrice());
         double currentPrice = stod(dataSets.at(i).getDealPrice());
         double tickReturn = (currentPrice - previousPrice) / previousPrice;

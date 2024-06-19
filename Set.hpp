@@ -27,5 +27,9 @@ public:
     typename Vector<T>::Iterator end() {
         return data.end();
     }
+
+    T get(int index) const {
+        return data.get(index);
+    }
 };
 #endif
