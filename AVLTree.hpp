@@ -1,16 +1,9 @@
-#ifndef AVLTREE_HPP
-#define AVLTREE_HPP
-
+#ifndef AVLTREE_H
+#define AVLTREE_H
 #include <iostream>
-#include <sstream>
-#include <string>
-#include <fstream>
-#include <algorithm>
+#include<string>
+#include"Tuple.hpp"
 #include "Vector.hpp"
-#include "Pair3.hpp"
-#include "Pair.hpp"
-#include "Set.hpp"
-
 using namespace std;
 
 class DataSet {
@@ -26,9 +19,10 @@ private:
 public:
     DataSet(string ddate, string pc, double sp, string ed, string ot, string dt, double dp, string dv)
         : dealDate(ddate), productCode(pc), strikePrice(sp), expirationDate(ed),
-          optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
+        optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
 
     DataSet() : dealDate(""), productCode(""), strikePrice(0.0), expirationDate(""), optionType(""), dealTime(""), dealPrice(0.0), dealVolume("") {}
+
     string getDealDate() const { return dealDate; }
     string getProductCode() const { return productCode; }
     double getStrikePrice() const { return strikePrice; }
@@ -38,6 +32,7 @@ public:
     double getDealPrice() const { return dealPrice; }
     string getDealVolume() const { return dealVolume; }
 
+    // 這裡要改成就算 dealPrice 一樣，只要 dealTime 不一樣也可以插入
     bool operator<(const DataSet& other) const {
         if (this->dealPrice < other.dealPrice) {
             return true;
@@ -58,118 +53,181 @@ public:
         }
     }
 
-    bool operator==(const DataSet& other) const {
-        return this->dealDate == other.dealDate && this->productCode == other.productCode && this->strikePrice == other.strikePrice &&
-               this->expirationDate == other.expirationDate && this->optionType == other.optionType && this->dealTime == other.dealTime &&
-               this->dealPrice == other.dealPrice && this->dealVolume == other.dealVolume;
-    }
-
-    bool isEqualTo(const DataSet& other) const {
-        return this->productCode == other.productCode &&
-               this->strikePrice == other.strikePrice &&
-               this->expirationDate == other.expirationDate &&
-               this->optionType == other.optionType;
-    }
-
     void print() {
         cout << dealDate << ", " << productCode << ", " << strikePrice << ", "
-             << expirationDate << ", " << optionType << ", " << dealTime << ", "
-             << dealPrice << ", " << dealVolume << endl;
+            << expirationDate << ", " << optionType << ", " << dealTime << ", "
+            << dealPrice << ", " << dealVolume << endl;
     }
 };
 
-class AVLTreeNode {
-public:
-    DataSet data;
-    AVLTreeNode *left;
-    AVLTreeNode *right;
-    int count;
-    int height;
+template <class T>
+class AVLTree {
+private:
+    struct Node {
+        T key;
+        Node* left;
+        Node* right;
+        int height;
+        DataSet data;
+        // Node(Tuple<string> k) : key(k), left(nullptr), right(nullptr), height(1) {}
+        // Node(DataSet d) : data(d), left(nullptr), right(nullptr) {}
+        Node(T k) : key(k), left(nullptr), right(nullptr), height(1) {}
+    };
 
-    AVLTreeNode() : data(), left(nullptr), right(nullptr), count(1), height(1) {}
-};
+    int size;
+    
+    Node* root;
+    
 
-int height(AVLTreeNode *node) {
-    if (node == nullptr) return 0;
-    return node->height;
-}
+    int height(Node* n) {
+        return n == nullptr ? 0 : n->height;
+    }
 
-AVLTreeNode* newNode(DataSet data) {
-    AVLTreeNode* node = new AVLTreeNode();
-    node->data = data;
-    node->left = nullptr;
-    node->right = nullptr;
-    node->height = 1;  // 新節點加到 leaf
-    return node;
-}
+    int max(int a, int b) {
+        return (a > b) ? a : b;
+    }
 
-AVLTreeNode *LL(AVLTreeNode *y) {
-    AVLTreeNode *x = y->left;  // x 是 y 的 left child
-    AVLTreeNode *T2 = x->right;  // T2 是 x 的右子樹
+    Node* rightRotate(Node* y) {
+        Node* x = y->left;
+        Node* T2 = x->right;
 
-    x->right = y;
-    y->left = T2;
+        x->right = y;
+        y->left = T2;
 
-    y->height = max(height(y->left), height(y->right)) + 1;  // +1 是因為自己本身也算一層
-    x->height = max(height(x->left), height(x->right)) + 1;
+        y->height = max(height(y->left), height(y->right)) + 1;
+        x->height = max(height(x->left), height(x->right)) + 1;
 
-    return x;  // 新的跟
-}
+        return x;
+    }
 
-AVLTreeNode *RR(AVLTreeNode *x) {
-    AVLTreeNode *y = x->right;
-    AVLTreeNode *T2 = y->left;
+    Node* leftRotate(Node* x) {
+        Node* y = x->right;
+        Node* T2 = y->left;
 
-    y->left = x;
-    x->right = T2;
+        y->left = x;
+        x->right = T2;
 
-    x->height = max(height(x->left), height(x->right)) + 1;
-    y->height = max(height(y->left), height(y->right)) + 1;
+        x->height = max(height(x->left), height(x->right)) + 1;
+        y->height = max(height(y->left), height(y->right)) + 1;
 
-    return y;
-}
+        return y;
+    }
 
-int getBalance(AVLTreeNode *node) {
-    if (node == nullptr) return 0;
-    return height(node->left) - height(node->right);
-}
+    int getBalance(Node* n) {
+        return n == nullptr ? 0 : height(n->left) - height(n->right);
+    }
 
-AVLTreeNode* insert(AVLTreeNode* node, DataSet data) {
-    if (node == nullptr) return newNode(data);
+    Node* insert(Node* node, T& key) {
+        if (node == nullptr)
+            return new Node(key);
 
-    if (data < node->data) {
-        node->left = insert(node->left, data);
-    } else if (data > node->data) {
-        node->right = insert(node->right, data);
-    } else {
+        if (key < node->key)
+            node->left = insert(node->left, key);
+        else if (key > node->key)
+            node->right = insert(node->right, key);
+        else
+            return node; // 重複的鍵不允許
+
+        node->height = 1 + max(height(node->left), height(node->right));
+
+        int balance = getBalance(node);
+
+        // 左左情況
+        if (balance > 1 && key < node->left->key)
+            return rightRotate(node);
+
+        // 右右情況
+        if (balance < -1 && key > node->right->key)
+            return leftRotate(node);
+
+        // 左右情況
+        if (balance > 1 && key > node->left->key) {
+            node->left = leftRotate(node->left);
+            return rightRotate(node);
+        }
+
+        // 右左情況
+        if (balance < -1 && key < node->right->key) {
+            node->right = rightRotate(node->right);
+            return leftRotate(node);
+        }
+
         return node;
     }
 
-    node->height = max(height(node->left), height(node->right)) + 1;
-    int bf = getBalance(node);
+    Node* search(Node* root, const Tuple<string>& key) {
+        if (root == nullptr || root->key == key)
+            return root;
 
-    if (bf > 1 && data < node->left->data) { return LL(node); }
-    if (bf < -1 && data > node->right->data) { return RR(node); }
-    if (bf > 1 && data > node->left->data) {
-        node->left = RR(node->left);
-        return LL(node);
-    }
-    if (bf < -1 && data < node->right->data) {
-        node->right = LL(node->right);
-        return RR(node);
+        if (key < root->key)
+            return search(root->left, key);
+
+        return search(root->right, key);
     }
 
-    return node;
-}
-
-void inOrder(AVLTreeNode* root, Vector<DataSet>& vec) {
-    if (root != nullptr) {
-        inOrder(root->left, vec);
-        vec.push_back(root->data);
-        inOrder(root->right, vec);
+    void preOrder(Node* root) {
+        if (root != nullptr) {
+            cout << root->key.data[0] << "_" << root->key.data[1] << "_" << root->key.data[2] << "_" << root->key.data[3]<<endl;
+            preOrder(root->left);
+            preOrder(root->right);
+        }
     }
-}
 
+    void inOrder(Node* root, Vector<DataSet>& vec) {
+        if (root != nullptr) {
+            inOrder(root->left, vec);
+            vec.push_back(root->data);
+            inOrder(root->right, vec);
+        }
+    }
 
+public:
+    Node* DataRoot;
+    AVLTree() : root(nullptr), size(0), DataRoot(nullptr) {}
+    void insert(T key) {
+        size++;
+        root = insert(root, key);
+    }
+
+    bool search(Tuple<string> key){
+        return search(root,key) != nullptr;
+    }
+
+    void preOrder() {
+        preOrder(root);
+        cout << endl;
+    }
+
+    void printTopAndBottom10(Node* root) {
+        Vector<DataSet> vec;
+        inOrder(root, vec);
+        int n = vec.size();
+
+        cout << "10 smallest prices for TXO_9900_201705_C:" << endl;
+        for (int i = 0; i < 10 && i < n; i++) {
+            // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
+            vec.at(i).print();
+        }
+        cout << endl;
+
+        cout << "10 largest prices for TXO_9900_201705_C:" << endl;
+        for (int i = n - 1; i >= n - 10 && i >= 0; i--) {
+            // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
+            vec.at(i).print();
+        }
+        cout << endl;
+    }
+
+    void findMedian(Node* root) {
+        Vector<DataSet> vec;
+        inOrder(root, vec);
+        int n = vec.size();
+        if (n % 2 == 0) {
+            cout << "Median price for TXO_9900_201705_C: " << (vec.at(n / 2).getDealPrice() + vec.at(n / 2 - 1).getDealPrice()) / 2 << endl;
+        } else {
+            cout << "Median price for TXO_9900_201705_C: " << vec.at(n / 2).getDealPrice() << endl;
+        }
+    }
+};
 
 #endif
