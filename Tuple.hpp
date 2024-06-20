@@ -1,5 +1,6 @@
 #ifndef TUPLE_HPP
 #define TUPLE_HPP
+#include<fstream>
 template <class T>
 class Tuple {
 public:
@@ -20,6 +21,38 @@ public:
             }
         }
         return true;
+    }
+
+    bool operator>(const Tuple& other) const {
+        for(int i=3;i>-1;i--){
+            if(data[i]>other.data[i]){
+                return true;
+            }
+            else if(data[i]==other.data[i]){
+                continue;
+            }
+            else{
+                return false;
+            }
+        }
+
+        return false;
+    }
+
+    bool operator<(const Tuple& other) const {
+        for(int i=3;i>-1;i--){
+            if(data[i]<other.data[i]){
+                return true;
+            }
+            else if(data[i]==other.data[i]){
+                continue;
+            }
+            else{
+                return false;
+            }
+        }
+
+        return false;
     }
 };
 #endif
