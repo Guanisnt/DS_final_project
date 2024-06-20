@@ -9,7 +9,8 @@ public:
     T2 second;
 
     Pair(const T1& first, const T2& second) : first(first), second(second) {}
-    Pair() : first(""), second("") {}
+    // Pair() : first(""), second("") {}
+    Pair() = default;
 
     bool operator<(const Pair& other) const {
         if (first == other.first) {
