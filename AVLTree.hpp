@@ -68,10 +68,10 @@ private:
         Node* left;
         Node* right;
         int height;
-        T data;
+        // T data;
         // Node(Tuple<string> k) : key(k), left(nullptr), right(nullptr), height(1) {}
         // Node(DataSet d) : data(d), left(nullptr), right(nullptr) {}
-        Node(T k) : key(k), left(nullptr), right(nullptr), height(1), data(k) {}  // 初始化 data 為 k
+        Node(T k) : key(k), left(nullptr), right(nullptr), height(1) {}  // 初始化 data 為 k
     };
 
     int size;
@@ -176,7 +176,7 @@ private:
     void inOrder(Node* root, Vector<DataSet>& vec) {
         if (root != nullptr) {
             inOrder(root->left, vec);
-            vec.push_back(root->data);
+            vec.push_back(root->key);
             inOrder(root->right, vec);
         }
     }
