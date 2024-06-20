@@ -68,10 +68,10 @@ private:
         Node* left;
         Node* right;
         int height;
-        DataSet data;
+        T data;
         // Node(Tuple<string> k) : key(k), left(nullptr), right(nullptr), height(1) {}
         // Node(DataSet d) : data(d), left(nullptr), right(nullptr) {}
-        Node(T k) : key(k), left(nullptr), right(nullptr), height(1) {}
+        Node(T k) : key(k), left(nullptr), right(nullptr), height(1), data(k) {}  // 初始化 data 為 k
     };
 
     int size;
@@ -182,11 +182,16 @@ private:
     }
 
 public:
-    Node* DataRoot;
-    AVLTree() : root(nullptr), size(0), DataRoot(nullptr) {}
+    // Node* DataRoot;
+    // AVLTree() : root(nullptr), size(0), DataRoot(nullptr) {}
+    AVLTree() : root(nullptr) {}
     void insert(T key) {
         size++;
         root = insert(root, key);
+    }
+
+    void inOrderTraversal(Vector<DataSet>& vec) {
+        inOrder(root, vec);
     }
 
     bool search(Tuple<string> key){
@@ -198,9 +203,9 @@ public:
         cout << endl;
     }
 
-    void printTopAndBottom10(Node* root) {
+    void printTopAndBottom10() {
         Vector<DataSet> vec;
-        inOrder(root, vec);
+        inOrderTraversal(vec);
         int n = vec.size();
 
         cout << "10 smallest prices for TXO_9900_201705_C:" << endl;
@@ -218,9 +223,9 @@ public:
         cout << endl;
     }
 
-    void findMedian(Node* root) {
+    void findMedian() {
         Vector<DataSet> vec;
-        inOrder(root, vec);
+        inOrderTraversal(vec);
         int n = vec.size();
         if (n % 2 == 0) {
             cout << "Median price for TXO_9900_201705_C: " << (vec.at(n / 2).getDealPrice() + vec.at(n / 2 - 1).getDealPrice()) / 2 << endl;

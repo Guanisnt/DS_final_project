@@ -30,7 +30,7 @@ void readCSV(const string& filename) {
 }
 
 Set<Pair<string, double>> seen;
-void bulidDataTree(const string& filename, AVLTree<DataSet>& Tree) {
+void buildDataTree(const string& filename, AVLTree<DataSet>& Tree) {
     ifstream file(filename.c_str());
     string line;
     
@@ -57,7 +57,11 @@ void bulidDataTree(const string& filename, AVLTree<DataSet>& Tree) {
         
         if (productCode == "    TXO     " && strikePrice == 9900.0 && expirationDate == "201705" && optionType == "    C     ") {
             DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
+            
             if (seen.find({dealTime, dealPrice}) == seen.end()) {
+                // cout << "Parsed values: " << data.getDealDate() << ", " << data.getProductCode() << ", " << data.getStrikePrice() << ", "
+                //     << data.getExpirationDate() << ", " << data.getOptionType() << ", " << data.getDealTime() << ", "
+                //     << data.getDealPrice() << ", " << data.getDealVolume() << endl;
                 // 如果沒有輸出過，加到 set 和 tree
                 seen.insert({dealTime, dealPrice});
                 Tree.insert(data);
@@ -79,6 +83,19 @@ void BuildAVLTree(AVLTree<Tuple<string>>& Tree){
         }
     }
     cout << "Unique data count: " << size << endl;
+}
+
+void computeTick() {
+    double maxReturn = -1.0;
+    double minReturn = 1.0;
+    for(int i=1; i<seen.size(); i++) {
+        double returnRate = (seen.get(i).second - seen.get(i-1).second) / seen.get(i-1).second;
+        maxReturn = max(maxReturn, returnRate);
+        minReturn = min(minReturn, returnRate);
+    }
+
+    cout << "Max return rate: " << maxReturn << endl;
+    cout << "Min return rate: " << minReturn << endl;
 }
 
 int main() {
@@ -112,11 +129,13 @@ int main() {
         cout << product3 << " not exists\n";
         
     AVLTree<DataSet> Tree;
-    for(int i=5; i<=5; i++){
+    for(int i=5; i<=9; i++){
         string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
         cout << file << endl;
-        bulidDataTree(file, Tree);
+        buildDataTree(file, Tree);
     }
-    Tree.printTopAndBottom10(Tree.DataRoot);
+    Tree.printTopAndBottom10();
+    Tree.findMedian();
+    computeTick();
     return 0;
 }
