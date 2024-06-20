@@ -3,22 +3,81 @@
 #include <iostream>
 #include<string>
 #include"Tuple.hpp"
+#include "Vector.hpp"
 using namespace std;
 
+class DataSet {
+private:
+    string dealDate;
+    string productCode;
+    double strikePrice;
+    string expirationDate;
+    string optionType;
+    string dealTime;
+    double dealPrice;
+    string dealVolume;
+public:
+    DataSet(string ddate, string pc, double sp, string ed, string ot, string dt, double dp, string dv)
+        : dealDate(ddate), productCode(pc), strikePrice(sp), expirationDate(ed),
+        optionType(ot), dealTime(dt), dealPrice(dp), dealVolume(dv) {}
+
+    DataSet() : dealDate(""), productCode(""), strikePrice(0.0), expirationDate(""), optionType(""), dealTime(""), dealPrice(0.0), dealVolume("") {}
+
+    string getDealDate() const { return dealDate; }
+    string getProductCode() const { return productCode; }
+    double getStrikePrice() const { return strikePrice; }
+    string getExpirationDate() const { return expirationDate; }
+    string getOptionType() const { return optionType; }
+    string getDealTime() const { return dealTime; }
+    double getDealPrice() const { return dealPrice; }
+    string getDealVolume() const { return dealVolume; }
+
+    // 這裡要改成就算 dealPrice 一樣，只要 dealTime 不一樣也可以插入
+    bool operator<(const DataSet& other) const {
+        if (this->dealPrice < other.dealPrice) {
+            return true;
+        } else if (this->dealPrice == other.dealPrice) {
+            return this->dealTime < other.dealTime;
+        } else {
+            return false;
+        }
+    }
+
+    bool operator>(const DataSet& other) const {
+        if (this->dealPrice > other.dealPrice) {
+            return true;
+        } else if (this->dealPrice == other.dealPrice) {
+            return this->dealTime > other.dealTime;
+        } else {
+            return false;
+        }
+    }
+
+    void print() {
+        cout << dealDate << ", " << productCode << ", " << strikePrice << ", "
+            << expirationDate << ", " << optionType << ", " << dealTime << ", "
+            << dealPrice << ", " << dealVolume << endl;
+    }
+};
+
+template <class T>
 class AVLTree {
 private:
     struct Node {
-        Tuple<string> key;
+        T key;
         Node* left;
         Node* right;
         int height;
-
-        Node(Tuple<string> k) : key(k), left(nullptr), right(nullptr), height(1) {}
+        // T data;
+        // Node(Tuple<string> k) : key(k), left(nullptr), right(nullptr), height(1) {}
+        // Node(DataSet d) : data(d), left(nullptr), right(nullptr) {}
+        Node(T k) : key(k), left(nullptr), right(nullptr), height(1) {}  // 初始化 data 為 k
     };
 
     int size;
-
+    
     Node* root;
+    
 
     int height(Node* n) {
         return n == nullptr ? 0 : n->height;
@@ -58,7 +117,7 @@ private:
         return n == nullptr ? 0 : height(n->left) - height(n->right);
     }
 
-    Node* insert(Node* node, Tuple<string> key) {
+    Node* insert(Node* node, T& key) {
         if (node == nullptr)
             return new Node(key);
 
@@ -114,12 +173,25 @@ private:
         }
     }
 
-public:
-    AVLTree() : root(nullptr),size(0) {}
+    void inOrder(Node* root, Vector<DataSet>& vec) {
+        if (root != nullptr) {
+            inOrder(root->left, vec);
+            vec.push_back(root->key);
+            inOrder(root->right, vec);
+        }
+    }
 
-    void insert(Tuple<string> key) {
+public:
+    // Node* DataRoot;
+    // AVLTree() : root(nullptr), size(0), DataRoot(nullptr) {}
+    AVLTree() : root(nullptr) {}
+    void insert(T key) {
         size++;
         root = insert(root, key);
+    }
+
+    void inOrderTraversal(Vector<DataSet>& vec) {
+        inOrder(root, vec);
     }
 
     bool search(Tuple<string> key){
@@ -129,6 +201,37 @@ public:
     void preOrder() {
         preOrder(root);
         cout << endl;
+    }
+
+    void printTopAndBottom10() {
+        Vector<DataSet> vec;
+        inOrderTraversal(vec);
+        int n = vec.size();
+
+        cout << "10 smallest prices for TXO_9900_201705_C:" << endl;
+        for (int i = 0; i < 10 && i < n; i++) {
+            // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
+            vec.at(i).print();
+        }
+        cout << endl;
+
+        cout << "10 largest prices for TXO_9900_201705_C:" << endl;
+        for (int i = n - 1; i >= n - 10 && i >= 0; i--) {
+            // cout << vec.at(i).getDealPrice() << " " << vec.at(i).getDealTime() << endl;
+            vec.at(i).print();
+        }
+        cout << endl;
+    }
+
+    void findMedian() {
+        Vector<DataSet> vec;
+        inOrderTraversal(vec);
+        int n = vec.size();
+        if (n % 2 == 0) {
+            cout << "Median price for TXO_9900_201705_C: " << (vec.at(n / 2).getDealPrice() + vec.at(n / 2 - 1).getDealPrice()) / 2 << endl;
+        } else {
+            cout << "Median price for TXO_9900_201705_C: " << vec.at(n / 2).getDealPrice() << endl;
+        }
     }
 };
 
