@@ -4,6 +4,7 @@
 #include <string>
 #include <algorithm>
 #include <iomanip>
+#include <windows.h>
 #include "Tuple.hpp"
 #include "Set.hpp"
 #include "Pair.hpp"
@@ -151,6 +152,11 @@ void computeTick(Vector<DataSet>& dataSets) {
 
 
 int main() {
+    LARGE_INTEGER cpuFreq;
+	LARGE_INTEGER startTime;
+	LARGE_INTEGER endTime;
+	QueryPerformanceFrequency(&cpuFreq);
+
     for(int i=5; i<=9; i++){
         string file = "OptionsDaily_2017_05_1" + to_string(i) + ".csv";
         cout << file << endl;
@@ -161,42 +167,61 @@ int main() {
     string product2 = "TXO_9500_201706_C";
     string product3 = "GIO_5500_201706_C";
 
+    QueryPerformanceCounter(&startTime);
     if (productExists("    TXO     ", "1000", "201706", "    P     ")) {
         cout << product1 << " exists in the datasets." << endl;
     } else {
         cout << product1 << " does not exist in the datasets." << endl;
     }
+	QueryPerformanceCounter(&endTime);
+    cout << "Search "<<product1<<" cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
 
+    QueryPerformanceCounter(&startTime);
     if (productExists("    TXO     ", "9500", "201706", "    C     ")) {
         cout << product2 << " exists in the datasets." << endl;
     } else {
         cout << product2 << " does not exist in the datasets." << endl;
     }
+    QueryPerformanceCounter(&endTime);
+    cout << "Search "<<product1<<" cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
 
+    QueryPerformanceCounter(&startTime);
     if (productExists("    GIO     ", "5500", "201706", "    C     ")) {
         cout << product3 << " exists in the datasets." << endl;
     } else {
         cout << product3 << " does not exist in the datasets." << endl;
     }
+    QueryPerformanceCounter(&endTime);
+    cout << "Search "<<product1<<" cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
     /*************************************************************** */
-
+    
     /*第 5 題 a*/
+    QueryPerformanceCounter(&startTime);
     MinHeap minHeap;
     buildMinHeapFromVector(row, minHeap);
-
     Vector<DataSet> sortedData = heapSort(minHeap);
+    QueryPerformanceCounter(&endTime);
+    cout << "Build minHeap Tree cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
+
+    QueryPerformanceCounter(&startTime);
     cout << "10 samllest prices for TXO_9900_201705_C" << endl;
     for (int i = 0; i < 10; i++) {
         sortedData.at(i).print();
     }
+    QueryPerformanceCounter(&endTime);
+    cout << "cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
 
     /*第 5 題 b*/
+    QueryPerformanceCounter(&startTime);
     cout << "10 largest prices for TXO_9900_201705_C" << endl;
     for (int i = sortedData.size() - 1; i >= sortedData.size() - 10; i--) {
         sortedData.at(i).print();
     }
+    QueryPerformanceCounter(&endTime);
+    cout << "cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
 
     /*第 5 題 c*/
+    QueryPerformanceCounter(&startTime);
     cout << "meidan price for TXO_9900_201705_C: ";
     string medianPrice;
     if (sortedData.size() % 2 == 0) {
@@ -205,10 +230,15 @@ int main() {
         medianPrice = sortedData.at(sortedData.size() / 2).getDealPrice();
     }
     cout << medianPrice << endl;
+    QueryPerformanceCounter(&endTime);
+    cout << "cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
 
     /*第 5 題 d*/
+    QueryPerformanceCounter(&startTime);
     filterDataSets("    TXO     ", "9900", "201705", "    C     ");
     computeTick(dataSetForTick);
+    QueryPerformanceCounter(&endTime);
+    cout << "cost : "<< (((endTime.QuadPart - startTime.QuadPart) * 1000.0f) / cpuFreq.QuadPart) <<" ms\n\n";
 
     return 0;
 }
