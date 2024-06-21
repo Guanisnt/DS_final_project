@@ -162,6 +162,8 @@ int main() {
         cout << file << endl;
         readCSV(file);
     }
+
+    
     /*第 2 3 4 題*/
     string product1 = "TXO_1000_201706_P";
     string product2 = "TXO_9500_201706_C";

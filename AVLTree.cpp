@@ -48,12 +48,12 @@ void buildDataTree( AVLTree<DataSet>& Tree) {
             if (productCode == "    TXO     " && strikePrice == 9900.0 && expirationDate == "201705" && optionType == "    C     ") {
             DataSet data(dealDate, productCode, strikePrice, expirationDate, optionType, dealTime, dealPrice, dealVolume);
             
-            if (seen.find({dealTime, dealPrice}) == seen.end()) {
+            if (seen.find({dealDate+" "+dealTime, dealPrice}) == seen.end()) {
                 // cout << "Parsed values: " << data.getDealDate() << ", " << data.getProductCode() << ", " << data.getStrikePrice() << ", "
                 //     << data.getExpirationDate() << ", " << data.getOptionType() << ", " << data.getDealTime() << ", "
                 //     << data.getDealPrice() << ", " << data.getDealVolume() << endl;
                 // 如果沒有輸出過，加到 set 和 tree
-                seen.insert({dealTime, dealPrice});
+                seen.insert({dealDate+" "+dealTime, dealPrice});
                 Tree.insert(data);
             }
         }
@@ -76,16 +76,23 @@ void BuildUniqueTree(AVLTree<Tuple<string>>& Tree){
 }
 
 void computeTick() {
+    int maxindex,minindex;
     double maxReturn = -1.0;
     double minReturn = 1.0;
     for(int i=1; i<seen.size(); i++) {
         double returnRate = (seen.get(i).second - seen.get(i-1).second) / seen.get(i-1).second;
-        maxReturn = max(maxReturn, returnRate);
-        minReturn = min(minReturn, returnRate);
+        if(maxReturn < returnRate){
+            maxReturn=returnRate;
+            maxindex=i;
+        }
+        if(minReturn > returnRate){
+            minReturn=returnRate;
+            minindex=i;
+        }
     }
 
-    cout << "Max return rate: " << maxReturn << endl;
-    cout << "Min return rate: " << minReturn << endl;
+    cout << "Max return rate: " << maxReturn << " at " << seen.get(maxindex).first << endl;
+    cout << "Min return rate: " << minReturn << " at " << seen.get(minindex).first << endl;
 }
 
 int main() {
